@@ -1,0 +1,2262 @@
+<title>TAMC ED Shift Board</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a macOS-style window — translucent toolbar with a segmented control, grouped content panels, one dense scrolling grid. */
+:root {
+  --bg: #ececec;
+  --panel: #ffffff;
+  --panel-2: #f5f5f7;
+  --ink: #1d1d1f;
+  --muted: #6e6e73;
+  --line: #e0e0e3;
+  --accent: #007aff;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(0, 122, 255, .12);
+  --toolbar: rgba(246, 246, 246, .82);
+  --seg: rgba(118, 118, 128, .12);
+  --seg-on: #ffffff;
+  --ok: #248a3d;   --ok-bg: rgba(52, 199, 89, .16);
+  --warn: #b25000; --warn-bg: rgba(255, 149, 0, .18);
+  --crit: #d70015; --crit-bg: rgba(255, 59, 48, .14);
+  --day: rgba(255, 204, 0, .28);   --day-ink: #8a6100;
+  --night: #5856d6; --night-ink: #ffffff;
+  --swing: rgba(175, 82, 222, .18); --swing-ink: #8944ab;
+  --edu: rgba(52, 199, 89, .18);   --edu-ink: #248a3d;
+  --pto: rgba(142, 142, 147, .18); --pto-ink: #48484a;
+  --off: #ffffff;   --off-ink: #8e8e93;
+  --weekend: #fafafa;
+  --today: #007aff;
+  --shadow: 0 0 0 .5px rgba(0,0,0,.12), 0 12px 40px rgba(0,0,0,.18);
+  --ctl-shadow: 0 0 0 .5px rgba(0,0,0,.14), 0 1px 1.5px rgba(0,0,0,.08);
+  --f-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
+  --f-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
+  --f-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1e1e1e; --panel: #2a2a2c; --panel-2: #323234; --ink: #f5f5f7; --muted: #98989d; --line: #3a3a3c;
+  --accent: #0a84ff; --accent-ink: #ffffff; --accent-soft: rgba(10, 132, 255, .22);
+  --toolbar: rgba(40, 40, 42, .82); --seg: rgba(118, 118, 128, .24); --seg-on: #636366;
+  --ok: #30d158; --ok-bg: rgba(48, 209, 88, .18); --warn: #ff9f0a; --warn-bg: rgba(255, 159, 10, .2); --crit: #ff453a; --crit-bg: rgba(255, 69, 58, .2);
+  --day: rgba(255, 214, 10, .22); --day-ink: #ffd60a; --night: #5e5ce6; --night-ink: #ffffff; --swing: rgba(191, 90, 242, .24); --swing-ink: #da8fff;
+  --edu: rgba(48, 209, 88, .2); --edu-ink: #30d158; --pto: rgba(142, 142, 147, .24); --pto-ink: #d1d1d6; --off: #2a2a2c; --off-ink: #98989d;
+  --weekend: #2f2f31; --today: #0a84ff; --shadow: 0 0 0 .5px rgba(255,255,255,.12), 0 12px 40px rgba(0,0,0,.55);
+  --ctl-shadow: 0 0 0 .5px rgba(255,255,255,.1), 0 1px 1.5px rgba(0,0,0,.3); color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #1e1e1e; --panel: #2a2a2c; --panel-2: #323234; --ink: #f5f5f7; --muted: #98989d; --line: #3a3a3c;
+  --accent: #0a84ff; --accent-ink: #ffffff; --accent-soft: rgba(10, 132, 255, .22);
+  --toolbar: rgba(40, 40, 42, .82); --seg: rgba(118, 118, 128, .24); --seg-on: #636366;
+  --ok: #30d158; --ok-bg: rgba(48, 209, 88, .18); --warn: #ff9f0a; --warn-bg: rgba(255, 159, 10, .2); --crit: #ff453a; --crit-bg: rgba(255, 69, 58, .2);
+  --day: rgba(255, 214, 10, .22); --day-ink: #ffd60a; --night: #5e5ce6; --night-ink: #ffffff; --swing: rgba(191, 90, 242, .24); --swing-ink: #da8fff;
+  --edu: rgba(48, 209, 88, .2); --edu-ink: #30d158; --pto: rgba(142, 142, 147, .24); --pto-ink: #d1d1d6; --off: #2a2a2c; --off-ink: #98989d;
+  --weekend: #2f2f31; --today: #0a84ff; --shadow: 0 0 0 .5px rgba(255,255,255,.12), 0 12px 40px rgba(0,0,0,.55);
+  --ctl-shadow: 0 0 0 .5px rgba(255,255,255,.1), 0 1px 1.5px rgba(0,0,0,.3); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 14px; line-height: 1.45; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--panel); }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* Top bar */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--toolbar); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--line); }
+.top-inner { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand-mark { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(180deg, #4da3ff, #0064e0); box-shadow: var(--ctl-shadow); display: grid; place-items: center; flex: none; }
+.brand-mark svg { display: block; }
+.brand h1 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: 21px; letter-spacing: .01em; line-height: 1; }
+.brand small { display: block; color: var(--muted); font-size: 12px; margin-top: 3px; }
+.top-tools { order: 3; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.period { display: flex; align-items: center; gap: 4px; }
+.period-label { font-family: var(--f-display); font-weight: 600; font-size: 16px; padding: 0 6px; white-space: nowrap; }
+.iconbtn { border: 0; box-shadow: var(--ctl-shadow); background: var(--panel); border-radius: 6px; width: 26px; height: 24px; display: grid; place-items: center; }
+.iconbtn:hover { background: var(--panel-2); }
+label.inline { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+select, input[type=text], input[type=date], input[type=number], textarea { background: var(--panel); border: 0; box-shadow: var(--ctl-shadow); border-radius: 6px; padding: 4px 8px; font-size: 13px; }
+input:focus, select:focus, textarea:focus { outline: none; box-shadow: 0 0 0 3px var(--accent-soft), 0 0 0 1px var(--accent); }
+.tabs { order: 2; display: flex; gap: 2px; overflow-x: auto; max-width: 100%; margin: 0 auto; padding: 2px; border-radius: 8px; background: var(--seg); scrollbar-width: none; }
+.tab { border: 0; background: none; padding: 4px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--ink); white-space: nowrap; display: flex; align-items: center; gap: 7px; }
+.tab[hidden] { display: none; }
+.tab[aria-selected=true] { background: var(--seg-on); box-shadow: var(--ctl-shadow); }
+.tab .count { font-size: 11px; font-variant-numeric: tabular-nums; padding: 0 6px; border-radius: 9px; background: var(--seg); color: var(--muted); }
+.tab .count.hot { background: var(--crit); color: #ffffff; }
+
+main { padding-block: 16px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 16px; }
+.banner { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 10px 14px; color: var(--muted); font-size: 13px; }
+.banner.warn { background: var(--warn-bg); color: var(--warn); border-color: transparent; }
+.panel { background: var(--panel); border: 0; box-shadow: var(--ctl-shadow); border-radius: 12px; min-width: 0; overflow: hidden; }
+.panel-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.panel-head h2 { margin: 0; font-family: var(--f-display); font-size: 18px; font-weight: 600; text-wrap: balance; }
+.panel-head .sub { color: var(--muted); font-size: 12px; }
+.panel-head .spacer { flex: 1; }
+.panel-body { padding: 14px; }
+.btn { border: 0; box-shadow: var(--ctl-shadow); background: var(--panel); border-radius: 6px; padding: 4px 12px; font-size: 13px; font-weight: 500; }
+.btn:hover { background: var(--panel-2); }
+.btn.primary { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 85%, #fff), var(--accent)); color: var(--accent-ink); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.small { padding: 2px 9px; font-size: 12px; }
+.btn.danger { color: var(--crit); }
+.eyebrow { text-transform: uppercase; letter-spacing: .08em; font-size: 11px; color: var(--muted); font-weight: 600; }
+
+/* Legend */
+.legend { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.chip { display: inline-grid; place-items: center; min-width: 26px; height: 20px; padding: 0 4px; border-radius: 5px; font-family: var(--f-display); font-weight: 600; font-size: 11.5px; }
+.s-day { background: var(--day); color: var(--day-ink); }
+.s-night { background: var(--night); color: var(--night-ink); }
+.s-ot { box-shadow: inset 0 0 0 1.5px var(--crit); }
+.s-charge { box-shadow: inset 0 0 0 1.5px currentColor; }
+.s-swing { background: var(--swing); color: var(--swing-ink); }
+.s-edu { background: var(--edu); color: var(--edu-ink); }
+.s-adm { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
+.s-pto { background: repeating-linear-gradient(135deg, var(--pto) 0 4px, transparent 4px 7px), var(--pto); color: var(--pto-ink); }
+.s-oc { background: transparent; color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
+.s-off { background: var(--off); color: var(--off-ink); box-shadow: inset 0 0 0 1px var(--line); }
+
+/* Grid */
+.grid-wrap { overflow: auto; max-height: calc(100vh - 200px); min-height: 320px; }
+table.grid { border-collapse: separate; border-spacing: 0; font-size: 12px; }
+.grid th, .grid td { border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); padding: 0; height: 30px; background: var(--panel); }
+.grid thead th { position: sticky; z-index: 3; background: var(--panel-2); font-weight: 500; }
+.grid thead tr.weeks th { top: 0; height: 24px; font-family: var(--f-display); font-weight: 600; font-size: 12px; color: var(--muted); text-align: left; padding-left: 8px; }
+.grid thead tr.days th { top: 24px; height: 38px; text-align: center; min-width: 36px; width: 36px; }
+.grid thead tr.days th .dow { display: block; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.grid thead tr.days th .dn { font-family: var(--f-mono); font-size: 12px; }
+.grid thead th.today { box-shadow: inset 0 -3px 0 var(--today); }
+.grid .name { position: sticky; left: 0; z-index: 2; min-width: 190px; max-width: 190px; text-align: left; padding: 0 8px; background: var(--panel); }
+.grid thead .name { z-index: 4; }
+.grid .name .nm { display: block; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; }
+.grid .name .meta { display: block; color: var(--muted); font-size: 11px; white-space: nowrap; }
+.grid .name.me .nm::after { content: "you"; margin-left: 6px; font-size: 10px; padding: 0 5px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.grid .tot { position: sticky; right: 0; z-index: 2; min-width: 58px; text-align: right; padding: 0 8px; background: var(--panel-2); }
+.grid thead .tot { z-index: 4; }
+.grid tr.group th { position: sticky; left: 0; text-align: left; padding: 6px 8px 4px; background: var(--bg); font-family: var(--f-display); font-weight: 600; font-size: 13px; letter-spacing: .02em; height: auto; border-right: 0; }
+.grid tr.group td { background: var(--bg); border-right: 0; }
+.grid td.wkend, .grid th.wkend { background: var(--weekend); }
+.grid td.wkstart, .grid th.wkstart { border-left: 2px solid var(--line); }
+.grid td.ppstart, .grid th.ppstart { border-left: 2px solid var(--muted); }
+.cell { width: 100%; height: 100%; border: 0; background: transparent; padding: 3px; display: grid; place-items: center; position: relative; }
+.cell:hover { background: var(--accent-soft); }
+.cell.sel { outline: 2px solid var(--accent); outline-offset: -2px; z-index: 1; }
+.cell .chip { width: 100%; height: 100%; min-width: 0; }
+.cell .flag { position: absolute; top: 1px; right: 1px; width: 0; height: 0; border-top: 7px solid var(--crit); border-left: 7px solid transparent; }
+.cell .flag.warn { border-top-color: var(--warn); }
+.cell.pending::after, .cell.offered::after { content: ""; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; border-radius: 50%; background: var(--warn); }
+.cell.offered::after { background: var(--accent); }
+.cell.changed::before { content: ""; position: absolute; left: 1px; bottom: 1px; width: 0; height: 0; border-bottom: 7px solid var(--accent); border-right: 7px solid transparent; }
+.grid tfoot td, .grid tfoot th { background: var(--panel-2); }
+.grid tfoot th.name { position: sticky; left: 0; }
+.grid tfoot th.name { z-index: 4; font-size: 12px; font-weight: 500; }
+.cov { font-family: var(--f-mono); font-size: 11px; text-align: center; display: grid; place-items: center; height: 100%; }
+.cov.short { background: var(--crit-bg); color: var(--crit); font-weight: 600; }
+.cov.over { background: var(--warn-bg); color: var(--warn); }
+.cov.met { color: var(--ok); }
+.ot { color: var(--warn); font-weight: 600; }
+
+/* Popover */
+.pop { position: fixed; z-index: 50; background: var(--panel); border-radius: 10px; box-shadow: var(--shadow); padding: 10px; width: 250px; }
+.pop h3 { margin: 0 0 2px; font-family: var(--f-display); font-size: 15px; }
+.pop .sub { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+.pop .opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+.pop .opt { border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 5px 4px; display: grid; gap: 2px; justify-items: center; font-size: 10.5px; color: var(--muted); }
+.pop .opt:hover, .pop .opt.cur { border-color: var(--accent); }
+.pop .issues { margin: 8px 0 0; padding: 0; list-style: none; font-size: 12px; display: grid; gap: 4px; }
+.pop .issues li { padding: 5px 7px; border-radius: 5px; background: var(--crit-bg); color: var(--crit); }
+.pop .issues li.warn { background: var(--warn-bg); color: var(--warn); }
+.pop .row { display: flex; justify-content: space-between; margin-top: 8px; gap: 6px; }
+.kbd { font-family: var(--f-mono); font-size: 10px; border: 1px solid var(--line); border-radius: 3px; padding: 0 3px; }
+
+/* Coverage */
+.cov-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+@media (max-width: 980px) { .cov-layout { grid-template-columns: minmax(0, 1fr); } }
+/* Schedule sub-views */
+.seg { display: inline-flex; gap: 2px; padding: 2px; border-radius: 8px; background: var(--seg); }
+.seg button { border: 0; background: none; padding: 3px 12px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--ink); white-space: nowrap; }
+.seg button[aria-pressed=true] { background: var(--seg-on); box-shadow: var(--ctl-shadow); }
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.cal .dh { padding: 6px 8px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--line); background: var(--panel-2); }
+.cal .pp { grid-column: 1 / -1; padding: 6px 10px; font-size: 12px; font-weight: 600; color: var(--muted); background: var(--panel-2); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.cal .pp b { color: var(--ink); font-weight: 600; }
+.cal .pp .ot { color: var(--warn); }
+.cell.calday { display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 4px; min-height: 86px; padding: 6px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); text-align: left; min-width: 0; }
+.cell.calday:nth-child(7n) { border-right: 0; }
+.calday .dnum { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; align-self: flex-start; padding: 0 5px; border-radius: 10px; }
+.calday.today .dnum { color: var(--accent-ink); background: var(--accent); font-weight: 600; }
+.calday.past { opacity: .5; }
+.calday.wkend { background: var(--weekend); }
+.calday .shift { border-radius: 6px; padding: 4px 6px; font-size: 12px; font-weight: 600; line-height: 1.25; overflow: hidden; }
+.calday .shift small { display: block; font-weight: 400; font-size: 11px; opacity: .85; font-variant-numeric: tabular-nums; }
+.calday .flag { top: 4px; right: 4px; }
+/* Daily roster */
+.daycols { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; padding: 12px 14px; }
+.daycol { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--panel); }
+.daycol h3 { margin: 0; display: flex; align-items: center; gap: 8px; padding: 8px 10px; font-size: 13px; font-weight: 600; background: var(--panel-2); border-bottom: 1px solid var(--line); }
+.daycol h3 .sub { margin-left: auto; color: var(--muted); font-weight: 400; font-size: 12px; }
+.cell.dayp { display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; height: auto; padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--ink); }
+.cell.dayp:last-child { border-bottom: 0; }
+.cell.dayp .meta { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.cell.dayp .flag { top: 3px; right: 3px; }
+.cell.dayp.pending::after, .cell.dayp.offered::after { left: auto; right: 6px; bottom: 4px; transform: none; }
+.daycov { width: 100%; border-collapse: collapse; font-size: 13px; }
+.daycov th, .daycov td { padding: 6px 14px; border-bottom: 1px solid var(--line); text-align: left; }
+.daycov th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; background: var(--panel-2); }
+.daycov .cov { display: inline-block; min-width: 44px; padding: 2px 6px; border-radius: 5px; }
+.offlist { padding: 0 14px 12px; }
+.offlist summary { cursor: pointer; padding: 8px 0; color: var(--muted); font-size: 13px; }
+.offlist .daycols { padding: 0; }
+@media (max-width: 640px) { .cell.calday { min-height: 62px; padding: 4px 3px; } .calday .shift { padding: 3px 4px; font-size: 11px; } .calday .shift small { display: none; } }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border-bottom: 1px solid var(--line); }
+@media (max-width: 640px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.stat { background: var(--panel); padding: 10px 14px; }
+.stat b { display: block; font-family: var(--f-display); font-size: 24px; font-weight: 600; line-height: 1.1; }
+.stat b.bad { color: var(--crit); }
+.stat span { font-size: 12px; color: var(--muted); }
+.chart-box { overflow-x: auto; }
+.chart-box svg { display: block; min-width: 620px; width: 100%; height: auto; }
+.chart-box text { fill: var(--muted); font-family: var(--f-mono); font-size: 10px; }
+.gantt { overflow-x: auto; }
+.gantt-inner { min-width: 620px; display: grid; gap: 3px; }
+.g-row { display: grid; grid-template-columns: 150px 1fr; align-items: center; gap: 8px; font-size: 12px; }
+.g-row .who { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.g-row .who small { color: var(--muted); }
+.g-track { position: relative; height: 18px; background: repeating-linear-gradient(90deg, var(--panel-2) 0 calc(100%/24 - 1px), var(--line) calc(100%/24 - 1px) calc(100%/24)); border-radius: 3px; }
+.g-bar { position: absolute; top: 2px; bottom: 2px; border-radius: 3px; font-family: var(--f-display); font-weight: 700; font-size: 11px; padding-left: 5px; display: flex; align-items: center; overflow: hidden; white-space: nowrap; }
+.g-axis { display: grid; grid-template-columns: 150px 1fr; gap: 8px; font-family: var(--f-mono); font-size: 10px; color: var(--muted); }
+.g-axis div:last-child { display: flex; justify-content: space-between; }
+.targets { display: grid; gap: 8px; }
+.targets table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.targets th, .targets td { padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: left; }
+.targets input { width: 56px; }
+
+/* Lists */
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 900px) { .two { grid-template-columns: minmax(0, 1fr); } }
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.list li:last-child { border-bottom: 0; }
+.list .grow { flex: 1; min-width: 180px; }
+.list .ttl { font-weight: 500; }
+.list .det { color: var(--muted); font-size: 12px; }
+.mgrs { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 8px; max-height: 240px; overflow: auto; }
+.mgrs li { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--line); font-size: 13px; }
+.mgrs li:last-child { border-bottom: 0; }
+.mgrs img { width: 24px; height: 24px; border-radius: 50%; flex: none; }
+.mgrs .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mgrs .none { color: var(--muted); }
+.modal .note { margin: 0; color: var(--muted); font-size: 12px; }
+.modal label.chk { display: flex; align-items: center; gap: 8px; color: var(--ink); font-size: 13px; }
+.modal .acct { display: grid; gap: 6px; }
+.tag-mgr { font-size: 11px; color: var(--accent, var(--muted)); margin-left: 4px; }
+.pill { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; text-transform: capitalize; }
+.pill.pending { background: var(--warn-bg); color: var(--warn); }
+.pill.approved { background: var(--ok-bg); color: var(--ok); }
+.pill.denied { background: var(--pto); color: var(--pto-ink); }
+.pill.short { background: var(--crit-bg); color: var(--crit); }
+.empty { padding: 28px 14px; text-align: center; color: var(--muted); }
+.empty strong { display: block; color: var(--ink); font-family: var(--f-display); font-size: 17px; margin-bottom: 4px; }
+form.req { display: grid; gap: 10px; padding: 14px; border-top: 1px solid var(--line); }
+form.req .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+form.req label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
+
+/* Staff */
+.tbl-wrap { overflow-x: auto; }
+table.staff { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 760px; }
+table.staff th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--panel-2); }
+table.staff th.pick, table.staff td.pick { width: 34px; padding-right: 0; }
+table.staff input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); margin: 0; vertical-align: middle; }
+table.staff tr.picked td { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.bulkbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 14px; border-bottom: 1px solid var(--line); background: var(--panel-2); font-size: 13px; }
+.bulkbar .sub { color: var(--muted); font-size: 12px; }
+.bulkbar select { font: inherit; }
+.bulkbar .btn.danger.armed { background: var(--crit); color: #fff; }
+table.staff td { padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.cred { display: inline-flex; gap: 4px; align-items: center; font-size: 11px; padding: 2px 7px; border-radius: 4px; margin: 1px 3px 1px 0; background: var(--ok-bg); color: var(--ok); font-weight: 500; }
+.cred.soon { background: var(--warn-bg); color: var(--warn); }
+.cred.exp, .cred.missing { background: var(--crit-bg); color: var(--crit); }
+.bar { height: 6px; border-radius: 3px; background: var(--panel-2); border: 1px solid var(--line); overflow: hidden; width: 90px; }
+.bar i { display: block; height: 100%; background: var(--accent); }
+.bar i.over { background: var(--warn); }
+
+/* Issues */
+.issues-list li .chip { flex: none; }
+.sev { width: 8px; height: 8px; border-radius: 50%; background: var(--crit); flex: none; }
+.sev.warn { background: var(--warn); }
+
+/* Modal */
+.scrim { position: fixed; inset: 0; background: rgba(10, 20, 18, .45); z-index: 60; display: grid; place-items: center; padding: 16px; }
+.modal { background: var(--panel); border-radius: 12px; box-shadow: var(--shadow); width: min(520px, 100%); max-height: 90vh; overflow: auto; }
+.modal h2 { margin: 0; font-family: var(--f-display); font-size: 20px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.modal .body { padding: 16px; display: grid; gap: 12px; }
+.modal .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.modal label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
+.modal .foot { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 16px; border-top: 1px solid var(--line); }
+.modal .foot .left { margin-right: auto; }
+.modal.wide { width: min(920px, 100%); }
+.hint { color: var(--muted); font-size: 12.5px; margin: 0; }
+.hint.warn-text { color: var(--warn); }
+.modal textarea { width: 100%; font-family: var(--f-mono); font-size: 12px; resize: vertical; }
+.modal details summary { cursor: pointer; font-size: 12.5px; color: var(--accent); font-weight: 500; }
+.tpl { font-family: var(--f-mono); font-size: 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; overflow-x: auto; margin: 8px 0; }
+.row-gap { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.modal label.filebtn { position: relative; overflow: hidden; display: inline-flex; color: var(--ink); font-size: 12px; }
+.filebtn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.filebtn:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.imp { max-height: 320px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; }
+.imp table.staff { min-width: 640px; }
+.imp tr.err td { background: var(--crit-bg); color: var(--crit); font-size: 12px; padding-block: 4px 7px; }
+
+/* Requests, holidays, call-offs, notifications, announcements, reports */
+.grid thead th.hol { box-shadow: inset 0 3px 0 var(--crit); }
+.grid thead th.hol.today { box-shadow: inset 0 3px 0 var(--crit), inset 0 -3px 0 var(--today); }
+.grid thead th.hol .dn { color: var(--crit); font-weight: 700; }
+.calday .hol { font-size: 10.5px; line-height: 1.2; color: var(--crit); font-weight: 600; }
+.marks { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); margin-top: 6px; }
+.mk { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; vertical-align: middle; background: transparent; flex: none; }
+.mk.tri { width: 0; height: 0; border-radius: 0; border-bottom: 7px solid var(--accent); border-right: 7px solid transparent; }
+.s-co { background: var(--crit-bg); color: var(--crit); text-decoration: line-through; }
+.pill.offered { background: var(--accent-soft); color: var(--accent); }
+.pill.declined { background: var(--pto); color: var(--pto-ink); }
+.stagebar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; color: var(--ink); }
+.notes { display: grid; gap: 8px; }
+.note-card { display: flex; gap: 12px; align-items: flex-start; background: var(--accent-soft); border-radius: 10px; padding: 10px 14px; font-size: 13.5px; }
+.note-card .grow { flex: 1; min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.note-card small { display: block; color: var(--muted); font-size: 11.5px; margin-top: 3px; }
+.bell { position: relative; width: 30px; }
+.bell .badge { position: absolute; top: -6px; right: -7px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--crit); color: #fff; font-size: 10px; font-weight: 700; display: grid; place-items: center; }
+.bell .badge[hidden] { display: none; }
+.notif { position: fixed; z-index: 55; width: min(380px, calc(100vw - 24px)); max-height: 70vh; overflow: auto; background: var(--panel); border-radius: 12px; box-shadow: var(--shadow); }
+.notif .panel-head { position: sticky; top: 0; background: var(--panel); z-index: 1; }
+.notif .list li { flex-wrap: nowrap; align-items: flex-start; }
+.notif .list li .mk { margin-top: 6px; }
+.notif .list li.new { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.notif .list li.go { cursor: pointer; }
+.notif .list li.go:hover { background: var(--panel-2); }
+table.staff .right { text-align: right; }
+table.staff tfoot td { background: var(--panel-2); font-weight: 600; }
+.upcoming { display: grid; gap: 10px; padding: 12px 14px; }
+.upcoming h3 { margin: 0 0 4px; font-size: 14px; font-family: var(--f-display); }
+.upcoming p { margin: 2px 0; font-size: 13px; }
+@media print {
+  @page { size: landscape; margin: 8mm; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { background: #fff; }
+  #rangeSeg, .period .iconbtn, .top-tools label.inline, .bell, .tabs, .banner, .notes, .noprint, .pop, .notif, .toast, .scrim { display: none !important; }
+  .top { position: static; background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; border: 0; }
+  main { padding: 0; }
+  .panel { box-shadow: none; overflow: visible; }
+  .grid-wrap, .tbl-wrap { max-height: none; overflow: visible; }
+  .grid .name, .grid .tot, .grid thead th, .grid tr.group th { position: static; }
+}
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 8px; font-size: 13px; z-index: 70; box-shadow: var(--shadow); max-width: calc(100% - 32px); }
+@media (max-width: 560px) {
+  .top-tools { margin-left: 0; width: 100%; }
+  .grid .name { min-width: 130px; max-width: 130px; }
+  .modal .fields { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: no-preference) { .cell, .btn, .tab { transition: background .12s, border-color .12s; } }
+</style>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 20 20"><path d="M1 11h4l2-6 3 10 2.5-7 1.5 3H19" fill="none" stroke="var(--accent-ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div><h1 id="unitName">TAMC ED Shift Board</h1><small id="unitSub">Emergency Department staffing</small></div>
+    </div>
+    <div class="top-tools">
+      <div class="seg" id="rangeSeg" role="group" aria-label="Date range"><button type="button" data-range="day">Daily</button><button type="button" data-range="pp">Bi-weekly</button><button type="button" data-range="month">Monthly</button><button type="button" data-range="6w">6 weeks</button></div>
+      <div class="period">
+        <button class="iconbtn" id="prevPeriod" aria-label="Previous dates">‹</button>
+        <span class="period-label" id="periodLabel"></span>
+        <button class="iconbtn" id="nextPeriod" aria-label="Next dates">›</button>
+      </div>
+      <label class="inline" for="meSel">Acting as
+        <select id="meSel"><option value="">Manager view</option></select>
+      </label>
+      <button class="iconbtn bell" id="bellBtn" type="button" aria-label="Notifications"><svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.6a4.4 4.4 0 0 0-4.4 4.4v2.9L2.2 11.6h11.6l-1.4-2.7V6A4.4 4.4 0 0 0 8 1.6zM6.3 13.2a1.8 1.8 0 0 0 3.4 0" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/></svg><span class="badge" id="bellCount" hidden></span></button>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Views">
+      <button class="tab" role="tab" data-view="schedule" id="tab-schedule">Schedule</button>
+      <button class="tab" role="tab" data-view="coverage" id="tab-coverage">Hourly coverage</button>
+      <button class="tab" role="tab" data-view="requests" id="tab-requests">Open shifts &amp; requests <span class="count" id="cntReq">0</span></button>
+      <button class="tab" role="tab" data-view="rules" id="tab-rules">Rule checks <span class="count" id="cntIssues">0</span></button>
+      <button class="tab" role="tab" data-view="staff" id="tab-staff">Staff &amp; credentials</button>
+      <button class="tab" role="tab" data-view="reports" id="tab-reports">Reports</button>
+    </nav>
+  </div>
+</header>
+<main id="main"></main>
+
+<script>
+(() => {
+'use strict';
+
+// ---------- Constants ----------
+const ANCHOR = '2026-11-01';          // first day of a 6-week period (a Sunday)
+const PERIOD_DAYS = 42;
+// Pay periods: 80 hours every 2 weeks, starting Nov 1, 2026 (three per schedule period).
+const PAY_DAYS = 14;
+const PAY_HOURS = 80;
+const ROLES = ['Doctor', 'PA', 'RN', 'LPN', 'Medic', 'MSA', 'Admin', 'Supply', 'Dispatcher'];
+const REQUIRED_CREDS = {
+  'Doctor': ['BLS', 'ACLS', 'PALS'],
+  'PA': ['BLS', 'ACLS', 'PALS'],
+  'RN': ['BLS', 'ACLS', 'PALS'],
+  'LPN': ['BLS'],
+  'Medic': ['BLS', 'NREMT'],
+  'MSA': [],
+  'Admin': [],
+  'Supply': [],
+  'Dispatcher': []
+};
+// Charge is a shift an RN works, not a role. Coverage counts it as its own line, ahead of RN.
+const COV_GROUPS = ROLES.flatMap(r => r === 'RN' ? ['Charge', 'RN'] : [r]);
+const CHARGE_CREDS = ['TNCC'];
+const ALL_CREDS = ['BLS', 'ACLS', 'PALS', 'ATLS', 'TNCC', 'ENPC', 'CEN', 'NREMT'];
+// Working shifts belong to set roles; Education, Leave, On call and RDO are open to everyone.
+const SHIFT_ROLES = ['RN', 'Medic'];
+const PROVIDERS = ['Doctor', 'PA'];
+const SUPPORT = ['MSA', 'Admin', 'Dispatcher'];
+const SHIFTS = {
+  // start and len are in hours; 5.75 is 0545. paid leaves out the unpaid 30-minute meal break.
+  D:   { label: 'Day 0545–1815',   start: 5.75,  len: 12.5, paid: 12, cls: 's-day',   duty: true,  roles: [...SHIFT_ROLES, 'LPN'], key: 'd' },
+  N:   { label: 'Night 1745–0615', start: 17.75, len: 12.5, paid: 12, cls: 's-night', duty: true,  roles: [...SHIFT_ROLES, 'LPN'], key: 'n' },
+  CD:  { label: 'Charge Day 0530–1815',   start: 5.5,  len: 12.75, paid: 12, cls: 's-day s-charge',   duty: true, charge: true, roles: ['RN'], key: 'c' },
+  CN:  { label: 'Charge Night 1730–0615', start: 17.5, len: 12.75, paid: 12, cls: 's-night s-charge', duty: true, charge: true, roles: ['RN'], key: 'h' },
+  // S and E8 stay as the stored codes so saved schedules keep working; `show` is what people see.
+  S:   { label: 'Mid 1100–2300',   start: 11, len: 12, cls: 's-swing', duty: true,  roles: SHIFT_ROLES, key: 'm', show: 'M' },
+  D8:  { label: 'Day 0700–1500',   start: 7,  len: 8,  cls: 's-day',   duty: true,  roles: SHIFT_ROLES, key: '8' },
+  E8:  { label: 'Late 1500–2300',  start: 15, len: 8,  cls: 's-swing', duty: true,  roles: SHIFT_ROLES, key: 'l', show: 'L8' },
+  // Doctors and PAs: 10-hour provider shifts.
+  PD:  { label: 'Main Pit Day 0600–1600',   start: 6,  len: 10, cls: 's-day',   duty: true, roles: PROVIDERS, key: 'd' },
+  PM:  { label: 'Main Pit Mid 1400–2400',   start: 14, len: 10, cls: 's-swing', duty: true, roles: PROVIDERS, key: 'm' },
+  PN:  { label: 'Main Pit Night 2200–0800', start: 22, len: 10, cls: 's-night', duty: true, roles: PROVIDERS, key: 'n' },
+  TR:  { label: 'Triage 1000–2000',         start: 10, len: 10, cls: 's-day',   duty: true, roles: PROVIDERS, key: 't' },
+  FX:  { label: 'Flex 1000–2000',           start: 10, len: 10, cls: 's-swing', duty: true, roles: PROVIDERS, key: 'f' },
+  // MSA, Admin and Dispatcher.
+  MD:  { label: 'MSA Day 0545–1815',   start: 5.75,  len: 12.5, paid: 12, cls: 's-day',   duty: true, roles: SUPPORT, key: 'd' },
+  MN:  { label: 'MSA Night 1745–0615', start: 17.75, len: 12.5, paid: 12, cls: 's-night', duty: true, roles: SUPPORT, key: 'n' },
+  // Supply works one 8-hour day; no times are shown, coverage treats it as 0800–1600.
+  SD:  { label: 'Day', start: 8, len: 8, cls: 's-day', duty: true, roles: ['Supply'], key: 'd', show: 'D' },
+  // Overtime: an extra shift at the role's own Day times, shown as OT and counted toward day coverage.
+  OT:  { label: 'Overtime 0545–1815', start: 5.75, len: 12.5, paid: 12, cls: 's-day s-ot', duty: true, roles: [...SHIFT_ROLES, 'LPN'], key: 'v', show: 'OT' },
+  OTP: { label: 'Overtime 0600–1600', start: 6,    len: 10,             cls: 's-day s-ot', duty: true, roles: PROVIDERS,           key: 'v', show: 'OT' },
+  OTM: { label: 'Overtime 0545–1815', start: 5.75, len: 12.5, paid: 12, cls: 's-day s-ot', duty: true, roles: SUPPORT,             key: 'v', show: 'OT' },
+  OTS: { label: 'Overtime',           start: 8,    len: 8,              cls: 's-day s-ot', duty: true, roles: ['Supply'],          key: 'v', show: 'OT' },
+  EDU: { label: 'Education 8h',    start: 8,  len: 8,  cls: 's-edu',   duty: false, worked: true, key: 'u' },
+  // Admin time: open to every role, 8 paid hours, no times shown and not counted toward coverage.
+  ADM: { label: 'Admin',           len: 8,  cls: 's-adm',   duty: false, worked: true, key: 'a' },
+  // A shift someone called off or was sick for; set from the cell menu, which also records it for the Call-offs report.
+  CO:  { label: 'Called off',      len: 0,  cls: 's-co',    duty: false, show: 'CO' },
+  PTO: { label: 'Leave',           len: 12, cls: 's-pto', duty: false, key: 'p', show: 'LV' },
+  OC:  { label: 'On call (night)', len: 0,  cls: 's-oc',  duty: false, key: 'o' },
+  X:   { label: 'RDO',             len: 0,  cls: 's-off', duty: false, key: 'x', show: 'RDO' }
+};
+const CODES = Object.keys(SHIFTS);
+const shiftOk = (code, role) => !SHIFTS[code]?.roles || SHIFTS[code].roles.includes(role);
+// The shift an open day or night slot is filled with, per coverage line; null when the role has none.
+function bandCode(group, band) {
+  if (group === 'Charge') return band === 'day' ? 'CD' : 'CN';
+  const want = band === 'day' ? ['D', 'MD', 'PD', 'SD'] : ['N', 'MN', 'PN'];
+  return want.find(c => shiftOk(c, group)) || null;
+}
+const REQ_TYPES = { pickup: 'Pick up', swap: 'Swap', giveaway: 'Give away', timeoff: 'Time off' };
+const VIEWS = ['schedule', 'coverage', 'requests', 'rules', 'staff', 'reports'];
+const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+// ---------- Date helpers (UTC, no DST surprises) ----------
+const parse = s => { const [y, m, d] = s.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); };
+const fmt = d => d.toISOString().slice(0, 10);
+const addDays = (s, n) => { const d = parse(s); d.setUTCDate(d.getUTCDate() + n); return fmt(d); };
+const diffDays = (a, b) => Math.round((parse(b) - parse(a)) / 864e5);
+const dow = s => parse(s).getUTCDay();
+const nice = s => { const d = parse(s); return `${DOW[d.getUTCDay()]} ${MON[d.getUTCMonth()]} ${d.getUTCDate()}`; };
+const short = s => { const d = parse(s); return `${MON[d.getUTCMonth()]} ${d.getUTCDate()}`; };
+const todayStr = (() => { const t = new Date(); return fmt(new Date(Date.UTC(t.getFullYear(), t.getMonth(), t.getDate()))); })();
+const periodOf = s => addDays(ANCHOR, Math.floor(diffDays(ANCHOR, s) / PERIOD_DAYS) * PERIOD_DAYS);
+const periodDays = p => Array.from({ length: PERIOD_DAYS }, (_, i) => addDays(p, i));
+const payStartOf = s => addDays(ANCHOR, Math.floor(diffDays(ANCHOR, s) / PAY_DAYS) * PAY_DAYS);
+const isPayStart = s => payStartOf(s) === s;
+const span = (a, b) => Array.from({ length: diffDays(a, b) + 1 }, (_, i) => addDays(a, i));
+// Visible range: 'day' = one day, 'pp' = one 2-week pay period, 'month' = calendar month, '6w' = the 6-week schedule period.
+function visDays() {
+  const c = state.cursor;
+  if (state.range === 'day') return [c];
+  if (state.range === 'pp') return span(payStartOf(c), addDays(payStartOf(c), PAY_DAYS - 1));
+  if (state.range === 'month') { const d = parse(c); const first = fmt(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))); return span(first, fmt(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)))); }
+  return periodDays(periodOf(c));
+}
+// Whole pay periods that cover the visible days (overtime and rule checks always look at full pay periods).
+function payPeriodsIn(days) {
+  const starts = [...new Set(days.map(payStartOf))];
+  return starts.map(p => span(p, addDays(p, PAY_DAYS - 1)));
+}
+const scopeDays = () => payPeriodsIn(visDays()).flat();
+function stepRange(dir) {
+  const days = visDays();
+  if (state.range === 'month') { const d = parse(days[0]); state.cursor = fmt(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + dir, 1))); }
+  else state.cursor = addDays(days[0], dir * days.length);
+}
+// US federal holidays on their calendar dates (the ED staffs the day itself, not the observed day off).
+const holCache = {};
+function holidays(year) {
+  if (holCache[year]) return holCache[year];
+  const day = (m, d) => fmt(new Date(Date.UTC(year, m, d)));
+  const nth = (m, wd, n) => day(m, 1 + (wd - new Date(Date.UTC(year, m, 1)).getUTCDay() + 7) % 7 + (n - 1) * 7);
+  const last = (m, wd) => { const end = new Date(Date.UTC(year, m + 1, 0)); return day(m, end.getUTCDate() - (end.getUTCDay() - wd + 7) % 7); };
+  return holCache[year] = {
+    [day(0, 1)]: "New Year's Day", [nth(0, 1, 3)]: 'Martin Luther King Jr. Day', [nth(1, 1, 3)]: "Presidents' Day", [last(4, 1)]: 'Memorial Day',
+    [day(5, 19)]: 'Juneteenth', [day(6, 4)]: 'Independence Day', [nth(8, 1, 1)]: 'Labor Day', [nth(9, 1, 2)]: 'Columbus Day',
+    [day(10, 11)]: 'Veterans Day', [nth(10, 4, 4)]: 'Thanksgiving', [day(11, 25)]: 'Christmas Day'
+  };
+}
+const holidayOf = d => holidays(+d.slice(0, 4))[d] || '';
+const isWeekend = d => dow(d) === 0 || dow(d) === 6;
+const addMonths = (s, n) => { const d = parse(s); return fmt(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + n, d.getUTCDate()))); };
+
+// ---------- Storage (per-viewer conveniences only) ----------
+const ls = {
+  get(k, f) { try { const v = localStorage.getItem('edsb:' + k); return v == null ? f : JSON.parse(v); } catch { return f; } },
+  set(k, v) { try { localStorage.setItem('edsb:' + k, JSON.stringify(v)); } catch {} }
+};
+
+// ---------- State ----------
+const state = {
+  db: null, user: null, canManage: !window.claude, isEditor: !window.claude, lockedView: null, myId: null, managers: [], people: [], live: false, loaded: false,
+  // Open on the period that is live a week from now, so the next schedule shows up in its final week of prep.
+  range: ['day', 'pp', 'month', '6w'].includes(ls.get('range', '6w')) ? ls.get('range', '6w') : '6w',
+  cursor: ls.get('range', '6w') === 'day' ? todayStr : addDays(todayStr, 7),
+  view: VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : ls.get('view', 'schedule'),
+  me: ls.get('me', ''),
+  roleFilter: ls.get('roleFilter', 'all'),
+  staffSort: ls.get('staffSort', 'role'),
+  schedMode: ls.get('schedMode', 'unit'),
+  covDate: null,
+  staff: [], rowsBy: {}, existBy: {}, requests: [], config: null,
+  sel: null, staffSel: new Set(), bulkArm: false, bulkBusy: false,
+  periods: {}, notes: [], changes: [], calloffs: [], patterns: [], extraPeriods: [], names: {},
+  rptTab: ls.get('rptTab', 'hours'), rptPP: null, rptMonths: ls.get('rptMonths', 6), histWho: ''
+};
+const DEFAULT_CONFIG = {
+  unitName: 'Emergency Department',
+  targets: { 'Charge': { day: 1, night: 1 }, 'RN': { day: 8, night: 6 }, 'Medic': { day: 2, night: 1 }, 'MSA': { day: 1, night: 0 },
+    'Admin': { day: 1, night: 0 }, 'Supply': { day: 1, night: 0 }, 'Dispatcher': { day: 1, night: 1 } },
+  arrivals: [4, 3, 3, 2, 2, 2, 3, 4, 6, 8, 9, 10, 10, 9, 9, 9, 9, 9, 8, 8, 7, 6, 5, 4]
+};
+const cfg = () => state.config || DEFAULT_CONFIG;
+
+// ---------- DB plumbing ----------
+const schedSubs = {};
+const queues = {};
+function queued(path, fn) {
+  const prev = queues[path] || Promise.resolve();
+  const next = prev.then(fn, fn);
+  queues[path] = next.catch(() => {});
+  return next;
+}
+function writeFailed(e) {
+  const code = e && e.code;
+  toast(code === 'not_granted' ? 'You have view-only access, so this change was not saved.' : 'Could not save that change. Check your connection and try again.');
+}
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Math.random().toString(36).slice(2, 10);
+
+async function boot() {
+  render();
+  if (!window.claude || !window.claude.use) { state.canManage = state.isEditor = true; state.loaded = true; render(); return; }
+  const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+  state.db = db; state.user = user;
+  if (user) {
+    try { state.isEditor = !!(await user.canEdit()); } catch { state.isEditor = false; }
+    try { state.myId = await user.id(); } catch { state.myId = null; }
+    state.canManage = state.isEditor;
+  }
+  if (!db) { state.loaded = true; render(); return; }
+  state.live = true;
+  // Owners and editors are always managers; access/managers adds people chosen by id.
+  db.doc('access/managers').onSnapshot(snap => {
+    state.managers = snap.exists ? (snap.data().ids || []) : [];
+    state.canManage = state.isEditor || (!!state.myId && state.managers.includes(state.myId));
+    render(); if (mgrModal) mgrModal.refresh();
+  });
+  // Everyone who opens the board and picks a name is listed here, so managers can be chosen by account.
+  db.collection('people').onSnapshot(snap => { state.people = snap.docs.map(d => ({ id: d.id, ...d.data() })); registerMe(); });
+  db.collection('staff').onSnapshot(snap => {
+    state.staff = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    state.loaded = true; render(); if (state.people.length || state.myId) registerMe();
+  }, () => { state.loaded = true; render(); });
+  db.collection('requests').onSnapshot(snap => {
+    state.requests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    render();
+  });
+  db.doc('config/unit').onSnapshot(snap => { state.config = snap.exists ? { ...DEFAULT_CONFIG, ...snap.data() } : null; render(); });
+  db.doc('config/patterns').onSnapshot(snap => { state.patterns = snap.exists ? (snap.data().list || []) : []; });
+  db.collection('periods').onSnapshot(snap => { const m = {}; snap.docs.forEach(d => { m[d.id] = d.data(); }); state.periods = m; render(); });
+  db.collection('notes').onSnapshot(snap => { state.notes = snap.docs.map(d => ({ id: d.id, ...d.data() })); render(); });
+  db.collection('calloffs').onSnapshot(snap => { state.calloffs = snap.docs.map(d => ({ id: d.id, ...d.data() })); render(); });
+  // The latest 500 schedule edits: enough for the history report and for marking changes made after posting.
+  db.collection('changes').orderBy('at', 'desc').limit(500).onSnapshot(snap => { state.changes = snap.docs.map(d => ({ id: d.id, ...d.data() })); render(); });
+  subscribeSchedule();
+}
+function subscribeSchedule() {
+  if (!state.db) return;
+  // Schedules are stored per 6-week period; listen to every period the visible pay periods touch.
+  const need = new Set([...scopeDays().map(periodOf), ...state.extraPeriods]);
+  Object.keys(schedSubs).forEach(p => { if (!need.has(p)) { schedSubs[p](); delete schedSubs[p]; delete state.rowsBy[p]; delete state.existBy[p]; } });
+  need.forEach(p => {
+    if (schedSubs[p]) return;
+    schedSubs[p] = state.db.collection('sched').where('period', '==', p).onSnapshot(snap => {
+      if (!schedSubs[p]) return;
+      const rows = {}, exists = {};
+      snap.docs.forEach(d => { const v = d.data(); rows[v.staffId] = { ...(v.days || {}) }; exists[v.staffId] = true; });
+      state.rowsBy[p] = rows; state.existBy[p] = exists; render();
+    });
+  });
+}
+
+function registerMe() {
+  if (!state.db || !state.myId) return;
+  const mine = state.people.find(p => p.id === state.myId);
+  const staffId = staffById(state.me) ? state.me : '';
+  if (mine && mine.staffId === staffId) return;
+  const doc = { staffId, seen: todayStr };
+  state.people = [...state.people.filter(p => p.id !== state.myId), { id: state.myId, ...doc }];
+  queued('people/' + state.myId, () => state.db.doc('people/' + state.myId).set(doc)).catch(() => {});
+}
+// Accounts to pick from: people who have opened the board, plus organization search matches.
+async function accountCandidates(q) {
+  const ql = q.toLowerCase();
+  const ps = state.people.length ? await state.user.profiles(state.people.map(p => p.id)) : {};
+  let list = state.people.map(p => ({ p: ps[p.id] || { id: p.id, name: '', avatarUrl: '' }, staffId: p.staffId || '' }));
+  if (q) list = list.filter(x => (x.p.name || '').toLowerCase().includes(ql) || (staffById(x.staffId)?.name || '').toLowerCase().includes(ql));
+  const found = q ? await state.user.search(q) : [];
+  found.forEach(f => { if (!list.some(x => x.p.id === f.id)) list.push({ p: f, staffId: state.people.find(x => x.id === f.id)?.staffId || '' }); });
+  return list;
+}
+function accountLabel(x) {
+  const st = staffById(x.staffId);
+  return { name: (x.p.name || (st ? st.name : 'Unnamed account')) + (x.p.isMe ? ' (you)' : ''), det: st ? `Acting as ${st.name}` : 'Has opened the board' };
+}
+
+// Each 6-week schedule is a draft (managers only), open for self-scheduling, or posted. Periods never set are posted.
+const periodState = p => (state.periods[p] && state.periods[p].state) || 'posted';
+function codeAt(staffId, date) { if (!state.canManage && periodState(periodOf(date)) === 'draft') return ''; return ((state.rowsBy[periodOf(date)] || {})[staffId] || {})[date] || ''; }
+
+async function setCell(staffId, date, code) {
+  const period = periodOf(date);
+  const before = codeAt(staffId, date);
+  const rows = state.rowsBy[period] || (state.db ? null : (state.rowsBy[period] = {}));
+  if (rows) {
+    rows[staffId] = { ...(rows[staffId] || {}), [date]: code };
+    render();
+  }
+  if (!state.db) return;
+  if (before !== code) logChange(staffId, date, before, code);
+  if (before === 'CO' && code !== 'CO') dropCalloff(staffId, date);
+  const path = `sched/${period}_${staffId}`;
+  return queued(path, async () => {
+    const ref = state.db.doc(path);
+    const ex = state.existBy[period];
+    const known = ex ? ex[staffId] : (await ref.get()).exists;
+    if (known) await ref.update({ days: { [date]: code } });
+    else { await ref.set({ period, staffId, days: { [date]: code } }); if (ex) ex[staffId] = true; }
+  }).catch(writeFailed);
+}
+
+// Every schedule edit is logged; edits to a posted schedule are marked on the cell and reach that person's notifications.
+function logChange(staffId, date, from, to) {
+  const id = 'c' + Date.now().toString(36) + uid().slice(0, 4);
+  const doc = { staffId, date, from: from || '', to: to || '', at: new Date().toISOString(), by: state.myId || '', byStaff: state.me || '' };
+  state.changes = [{ id, ...doc }, ...state.changes];
+  queued('changes/' + id, () => state.db.doc('changes/' + id).set(doc)).catch(() => {});
+}
+function postedChange(c) { const p = state.periods[periodOf(c.date)]; return !!(p && p.state === 'posted' && p.postedAt && c.at > p.postedAt); }
+function changedSincePost() { return new Set(state.changes.filter(postedChange).map(c => c.staffId + '|' + c.date)); }
+function markCalloff(staffId, date, kind) {
+  const id = staffId + '_' + date;
+  const doc = { staffId, date, shift: codeAt(staffId, date), kind, at: new Date().toISOString() };
+  state.calloffs = [...state.calloffs.filter(c => c.id !== id), { id, ...doc }];
+  setCell(staffId, date, 'CO');
+  saveDoc('calloffs/' + id, doc, false);
+  toast(`${staffById(staffId)?.name || 'Shift'} marked ${kind === 'sick' ? 'sick' : 'as a call-off'}. The shift now shows as open.`);
+}
+function dropCalloff(staffId, date) {
+  const id = staffId + '_' + date;
+  state.calloffs = state.calloffs.filter(c => c.id !== id);
+  removeDoc('calloffs/' + id);
+}
+
+async function saveDoc(path, data, merge) {
+  if (!state.db) return;
+  return queued(path, () => merge ? state.db.doc(path).update(data) : state.db.doc(path).set(data)).catch(writeFailed);
+}
+async function removeDoc(path) {
+  if (!state.db) return;
+  return queued(path, () => state.db.doc(path).delete()).catch(writeFailed);
+}
+
+// ---------- Derived data ----------
+function staffById(id) { return state.staff.find(s => s.id === id); }
+// Sort orders for the Staff & credentials table.
+const STAFF_SORTS = {
+  'role':       ['Role (unit order)', (a, b) => ROLES.indexOf(a.role) - ROLES.indexOf(b.role) || byName(a, b)],
+  'role-az':    ['Role A–Z',          (a, b) => String(a.role).localeCompare(String(b.role)) || byName(a, b)],
+  'role-za':    ['Role Z–A',          (a, b) => String(b.role).localeCompare(String(a.role)) || byName(a, b)],
+  'name-az':    ['Name A–Z',          (a, b) => byName(a, b)],
+  'name-za':    ['Name Z–A',          (a, b) => byName(b, a)],
+  'last-az':    ['Last name A–Z',     (a, b) => lastName(a).localeCompare(lastName(b)) || byName(a, b)]
+};
+const byName = (a, b) => String(a.name).localeCompare(String(b.name));
+const lastName = s => String(s.name).trim().split(/\s+/).pop();
+function sortedStaff() {
+  return [...state.staff].sort((a, b) => ROLES.indexOf(a.role) - ROLES.indexOf(b.role) || String(a.name).localeCompare(String(b.name)));
+}
+// Is a shift that started on its own date on duty at hour h (0..47) of that date?
+const covers = (code, h) => { const s = SHIFTS[code]; return !!(s && s.duty && h >= s.start && h < s.start + s.len); };
+const hrsText = n => String(Math.round(n * 100) / 100);
+function workedHours(code) { const s = SHIFTS[code]; return s && (s.duty || s.worked) ? (s.paid ?? s.len) : 0; }
+
+function coverageFor(date) {
+  const out = {};
+  COV_GROUPS.forEach(r => out[r] = { day: 0, night: 0 });
+  state.staff.forEach(s => {
+    if (!out[s.role]) return;
+    const c = codeAt(s.id, date);
+    if (covers(c, 12)) out[s.role].day++;
+    if (covers(c, 23)) out[s.role].night++;
+    if (SHIFTS[c]?.charge) { if (covers(c, 12)) out.Charge.day++; if (covers(c, 23)) out.Charge.night++; }
+  });
+  return out;
+}
+function hourly(date, roles) {
+  const prev = addDays(date, -1);
+  const arr = Array(24).fill(0);
+  state.staff.forEach(s => {
+    if (!roles.includes(s.role)) return;
+    const today = codeAt(s.id, date), yday = codeAt(s.id, prev);
+    // Count who is on duty at the half hour, so 30-minute handover overlaps don't double count.
+    for (let h = 0; h < 24; h++) if (covers(today, h + 0.5) || covers(yday, h + 24.5)) arr[h]++;
+  });
+  return arr;
+}
+const isDayHour = h => h >= 6 && h < 18;
+
+function credStatus(staff, cred, onDate) {
+  const exp = staff.creds && staff.creds[cred];
+  if (!exp) return 'missing';
+  if (exp < onDate) return 'exp';
+  if (diffDays(onDate, exp) <= 45) return 'soon';
+  return 'ok';
+}
+
+function computeIssues() {
+  const days = scopeDays();
+  const byCell = {}, list = [];
+  const listed = new Set();
+  // onceKey: flag every cell, but list the problem only on its first shift.
+  const add = (staff, date, sev, msg, onceKey) => {
+    const k = staff.id + '|' + date;
+    (byCell[k] = byCell[k] || []).push({ sev, msg });
+    if (onceKey && listed.has(staff.id + onceKey)) return;
+    if (onceKey) listed.add(staff.id + onceKey);
+    list.push({ staff, date, sev, msg: onceKey ? msg + ' Flagged on every shift after this one.' : msg });
+  };
+  state.staff.forEach(s => {
+    let run = 0;
+    days.forEach((d, i) => {
+      const c = codeAt(s.id, d);
+      const prev = codeAt(s.id, addDays(d, -1));
+      // Hours off between the previous shift's end and this one's start; a night ending 0615 followed by any shift that day is under 10h.
+      if (prev && SHIFTS[prev] && SHIFTS[prev].duty && c && SHIFTS[c] && SHIFTS[c].duty) {
+        const endPrev = SHIFTS[prev].start + SHIFTS[prev].len;  // hours from start of prev date
+        const gap = 24 + SHIFTS[c].start - endPrev;
+        if (gap < 10) add(s, d, 'crit', `Only ${hrsText(Math.max(0, gap))}h rest after the ${SHIFTS[prev].show || prev} shift on ${short(addDays(d, -1))} (minimum 10h).`);
+      }
+      if (c && SHIFTS[c] && SHIFTS[c].duty && SHIFTS[c].len >= 12) { run++; if (run === 4) add(s, d, 'warn', 'Fourth 12-hour shift in a row.'); }
+      else run = 0;
+      if (c && SHIFTS[c] && SHIFTS[c].duty) {
+        (REQUIRED_CREDS[s.role] || []).forEach(cr => {
+          if (credStatus(s, cr, d) === 'exp') add(s, d, 'crit', `${cr} expired ${short(s.creds[cr])}.`, cr);
+          else if (credStatus(s, cr, d) === 'missing' && i === days.findIndex(x => SHIFTS[codeAt(s.id, x)]?.duty)) add(s, d, 'warn', `No ${cr} on file.`);
+        });
+      }
+      if (c && !SHIFTS[c]?.charge && !shiftOk(c, s.role)) add(s, d, 'crit', `${SHIFTS[c].label} is only for ${SHIFTS[c].roles.join(' and ')}; ${s.name} is ${s.role}.`);
+      if (c && SHIFTS[c]?.charge) {
+        if (s.role !== 'RN') add(s, d, 'crit', `Charge shifts are worked by an RN; ${s.name} is ${s.role}.`);
+        CHARGE_CREDS.forEach(cr => {
+          const st = credStatus(s, cr, d);
+          if (st === 'exp' || st === 'missing') add(s, d, 'warn', `Charge shift without a current ${cr}${st === 'exp' ? ` (expired ${short(s.creds[cr])})` : ''}.`, 'charge' + cr);
+        });
+      }
+    });
+    payPeriodsIn(days).forEach(pd => {
+      // Flag the pay period on the day the running total first passes 80h.
+      let hrs = 0, firstOver = null;
+      pd.forEach(d => { hrs += workedHours(codeAt(s.id, d)); if (hrs > PAY_HOURS && !firstOver) firstOver = d; });
+      if (firstOver) add(s, firstOver, hrs > PAY_HOURS + 16 ? 'crit' : 'warn', `${hrsText(hrs)}h in the pay period ${short(pd[0])}–${short(pd[pd.length - 1])} (${hrsText(hrs - PAY_HOURS)}h overtime).`);
+    });
+  });
+  list.sort((a, b) => (a.sev === b.sev ? 0 : a.sev === 'crit' ? -1 : 1) || a.date.localeCompare(b.date));
+  return { byCell, list };
+}
+
+function openShifts() {
+  const t = cfg().targets || {};
+  const out = [];
+  visDays().forEach(d => {
+    if (d < todayStr) return;
+    const cov = coverageFor(d);
+    // Only roles that can work Day/Night (or Charge) get open shifts.
+    COV_GROUPS.filter(r => bandCode(r, 'day')).forEach(r => ['day', 'night'].forEach(b => {
+      const need = (t[r] && t[r][b]) || 0;
+      const have = cov[r][b];
+      if (have < need && bandCode(r, b)) out.push({ date: d, role: r, band: b, need: need - have, have, target: need });
+    }));
+  });
+  return out;
+}
+
+// ---------- Rendering ----------
+const main = document.getElementById('main');
+let issuesCache = { byCell: {}, list: [] };
+
+function render() {
+  // Everyone but managers sees only the Schedule tab. Remember where a manager was headed until access is known.
+  if (!state.canManage && state.view !== 'schedule') { state.lockedView = state.view; state.view = 'schedule'; }
+  else if (state.canManage && state.lockedView) { state.view = state.lockedView; state.lockedView = null; }
+  // Reports read further back than the visible dates, so they ask for those schedule periods too.
+  const ep = state.view === 'reports' ? reportPeriods() : [];
+  if (ep.join() !== state.extraPeriods.join()) { state.extraPeriods = ep; subscribeSchedule(); }
+  issuesCache = computeIssues();
+  const days = visDays(), last = days[days.length - 1];
+  document.getElementById('periodLabel').textContent = state.range === 'day' ? `${nice(days[0])}, ${parse(days[0]).getUTCFullYear()}` : state.range === 'month'
+    ? `${MONTHS[parse(days[0]).getUTCMonth()]} ${parse(days[0]).getUTCFullYear()}`
+    : `${short(days[0])} – ${short(last)}, ${parse(last).getUTCFullYear()}`;
+  document.getElementById('unitName').textContent = 'TAMC ED Shift Board';
+  document.getElementById('unitSub').textContent = cfg().unitName + ' · ' + { day: 'daily roster', pp: 'bi-weekly pay period', month: 'monthly view', '6w': '6-week schedule' }[state.range];
+  document.querySelectorAll('#rangeSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.range === state.range)));
+  // Acting-as options
+  const meSel = document.getElementById('meSel');
+  const opts = '<option value="">Manager view</option>' + sortedStaff().map(s => `<option value="${esc(s.id)}">${esc(s.name)} · ${esc(s.role)}</option>`).join('');
+  if (meSel.dataset.sig !== opts) { meSel.innerHTML = opts; meSel.dataset.sig = opts; }
+  meSel.value = staffById(state.me) ? state.me : '';
+  document.querySelectorAll('.tab').forEach(t => { t.setAttribute('aria-selected', String(t.dataset.view === state.view)); t.hidden = !state.canManage && t.dataset.view !== 'schedule'; });
+  const pending = state.requests.filter(r => r.status === 'pending').length;
+  const cr = document.getElementById('cntReq'); cr.textContent = pending; cr.classList.toggle('hot', pending > 0);
+  const crit = issuesCache.list.filter(i => i.sev === 'crit').length;
+  const ci = document.getElementById('cntIssues'); ci.textContent = issuesCache.list.length; ci.classList.toggle('hot', crit > 0);
+  updateBell();
+
+  const banner = !state.live && state.loaded
+    ? `<div class="banner warn">The shared schedule isn't available in this view, so edits stay on this screen only. Open the page on claude.ai while signed in to load and save the team's schedule.</div>` : '';
+  const scroll = main.querySelector('.grid-wrap');
+  const sx = scroll ? scroll.scrollLeft : null, sy = scroll ? scroll.scrollTop : null;
+  const fn = { schedule: viewSchedule, coverage: viewCoverage, requests: viewRequests, rules: viewRules, staff: viewStaff, reports: viewReports }[state.view] || viewSchedule;
+  main.innerHTML = banner + notesBar() + (state.view === 'schedule' ? periodBar() : '') + fn();
+  const ns = main.querySelector('.grid-wrap');
+  if (ns && sx != null) { ns.scrollLeft = sx; ns.scrollTop = sy; }
+  else if (ns && state.view === 'schedule' && !render.scrolled) {
+    render.scrolled = true;
+    const i = days.indexOf(todayStr);
+    if (i > 3) ns.scrollLeft = (i - 2) * 36;
+  }
+  if (state.sel && state.view === 'schedule') {
+    const el = main.querySelector(`.cell[data-s="${CSS.escape(state.sel.staffId)}"][data-d="${state.sel.date}"]`);
+    if (el) el.classList.add('sel');
+  }
+  if (popEl && state.sel) renderPop();
+}
+
+function chip(code) {
+  if (!code || !SHIFTS[code]) return '';
+  return `<span class="chip ${SHIFTS[code].cls}">${esc(SHIFTS[code].show || code)}</span>`;
+}
+
+function emptyStaff() {
+  if (!state.loaded) return `<div class="empty"><strong>Loading the schedule…</strong></div>`;
+  return `<div class="empty"><strong>No staff on the roster yet</strong>Add your nurses, medics, MSAs and support staff, then build the schedule here.<div class="row-gap" style="margin-top:12px;justify-content:center"><button class="btn primary" data-act="addStaff">Add staff member</button><button class="btn" data-act="importStaff">Import a list</button></div></div>`;
+}
+
+// Managers set each schedule's stage here; staff see a note when a schedule is unposted or open for picks.
+function periodBar() {
+  const ps = [...new Set(visDays().map(periodOf))];
+  const range = p => `${short(p)}–${short(addDays(p, PERIOD_DAYS - 1))}`;
+  if (state.canManage) {
+    const stages = [['draft', 'Draft (managers only)'], ['open', 'Self-scheduling open'], ['posted', 'Posted']];
+    return `<div class="banner stagebar noprint">${ps.map(p => {
+      const st = periodState(p), info = state.periods[p] || {};
+      return `<label class="inline" for="st-${p}">Schedule ${range(p)} <select id="st-${p}" data-period="${p}">${stages.map(([v, l]) => `<option value="${v}" ${v === st ? 'selected' : ''}>${l}</option>`).join('')}</select></label>`
+        + (st === 'open' ? `<label class="inline" for="su-${p}">picks close after <input type="date" id="su-${p}" data-period-until="${p}" value="${esc(info.until || '')}"></label>` : '')
+        + (st === 'posted' && info.postedAt ? `<span class="sub" style="font-size:12px;color:var(--muted)">Posted ${short(info.postedAt.slice(0, 10))} · later changes are marked</span>` : '')
+        + (st === 'draft' ? `<span class="sub" style="font-size:12px;color:var(--muted)">Staff can't see this schedule yet</span>` : '');
+    }).join('')}</div>`;
+  }
+  return ps.map(p => {
+    const st = periodState(p), info = state.periods[p] || {};
+    if (st === 'draft') return `<div class="banner">The ${range(p)} schedule isn't posted yet.</div>`;
+    if (st === 'open' && (!info.until || info.until >= todayStr)) return `<div class="banner">Self-scheduling is open for ${range(p)}${info.until ? ` through ${nice(info.until)}` : ''}. Open <b>My schedule</b> and click a day to pick a shift.</div>`;
+    return '';
+  }).join('');
+}
+function notesBar() {
+  const hidden = ls.get('hiddenNotes', []);
+  const list = state.notes.filter(n => (!n.until || n.until >= todayStr) && !hidden.includes(n.id)).sort((a, b) => String(b.at).localeCompare(String(a.at)));
+  if (!list.length) return '';
+  return `<div class="notes">${list.map(n => `<div class="note-card"><div class="grow">${esc(n.text)}<small>Announcement · ${short(String(n.at).slice(0, 10))}${n.until ? ` · until ${short(n.until)}` : ''}</small></div>${state.canManage ? `<button class="btn small" data-act="delNote" data-id="${esc(n.id)}">Delete</button>` : `<button class="btn small" data-act="hideNote" data-id="${esc(n.id)}">Hide</button>`}</div>`).join('')}</div>`;
+}
+function setPeriodState(p, st) {
+  if (!state.canManage) return;
+  const doc = { ...(state.periods[p] || {}), state: st };
+  if (st === 'posted') doc.postedAt = new Date().toISOString();
+  if (st === 'open') doc.openedAt = new Date().toISOString();
+  state.periods = { ...state.periods, [p]: doc }; render();
+  saveDoc('periods/' + p, doc, false);
+  toast(st === 'posted' ? 'Schedule posted. Staff can see it, and changes from now on are marked.' : st === 'open' ? 'Self-scheduling is open. Staff pick shifts in My schedule.' : 'Schedule is a draft. Only managers can see it.');
+}
+function setPeriodUntil(p, until) {
+  if (!state.canManage) return;
+  const doc = { ...(state.periods[p] || {}), until };
+  state.periods = { ...state.periods, [p]: doc }; render();
+  saveDoc('periods/' + p, doc, false);
+}
+
+function viewSchedule() {
+  const days = visDays();
+  const t = cfg().targets || {};
+  const roleOpts = ['all', ...ROLES].map(r => `<option value="${r}" ${state.roleFilter === r ? 'selected' : ''}>${r === 'all' ? 'All roles' : r}</option>`).join('');
+  // One legend entry for overtime, which uses each role's Day times.
+  const legend = CODES.filter(c => !['OTP', 'OTM', 'OTS'].includes(c)).map(c => `<span>${chip(c)} ${esc(c === 'OT' ? "Overtime (role's Day times)" : SHIFTS[c].label)}</span>`).join('');
+  if (state.schedMode === 'mine') return viewMySchedule();
+  if (state.range === 'day') return viewDay(roleOpts);
+  const tools = `<div class="row-gap noprint">${state.canManage ? '<button class="btn" data-act="pattern">Apply pattern</button><button class="btn" data-act="announce">Announce</button>' : ''}<button class="btn" data-act="exportSched">Export CSV</button><button class="btn" data-act="print">Print</button></div>`;
+  const markKey = `<div class="marks"><span><i class="mk" style="background:var(--accent)"></i>Waiting on a teammate</span><span><i class="mk" style="background:var(--warn)"></i>Waiting on a manager</span><span><i class="mk tri"></i>Changed after posting</span><span><i class="mk" style="background:var(--crit);border-radius:1px;height:3px"></i>Holiday</span></div>`;
+  const head = `<div class="panel-head">${schedSwitch()}<h2>Unit schedule</h2>
+    <label class="inline" for="roleFilter">Show <select id="roleFilter">${roleOpts}</select></label>
+    <span class="spacer"></span>${tools}
+  </div><div class="panel-body" style="padding-block:8px"><div class="legend">${legend}</div>${markKey}
+    ${state.canManage ? `<p class="hint noprint" style="margin-top:6px">Click a cell or use arrow keys, then type <span class="kbd">D</span> <span class="kbd">N</span> <span class="kbd">C</span> <span class="kbd">H</span> <span class="kbd">M</span> <span class="kbd">8</span> <span class="kbd">L</span> <span class="kbd">U</span> <span class="kbd">A</span> <span class="kbd">P</span> <span class="kbd">O</span> <span class="kbd">X</span>, <span class="kbd">V</span> overtime (Doctors and PAs also <span class="kbd">T</span> <span class="kbd">F</span>), <span class="kbd">Del</span> clears</p>` : '<p class="hint noprint" style="margin-top:6px">View only · send requests from My schedule</p>'}</div>`;
+  if (!state.staff.length) return `<section class="panel">${head}${emptyStaff()}</section>`;
+
+  // Pay periods are numbered from the first one, starting Nov 1, 2026; earlier ones show dates only.
+  const wk = `<tr class="weeks"><th class="name"></th>${payPeriodsIn(days).map(pd => { const n = pd.filter(d => days.includes(d)).length; return `<th colspan="${n}" class="ppstart">${n >= 7 ? `Pay period${payNo(pd[0])} · ` : ''}${short(pd[0])}–${short(pd[PAY_DAYS - 1])}${n >= 7 ? ` · ${PAY_HOURS}h` : ''}</th>`; }).join('')}<th class="tot"></th></tr>`;
+  const dh = `<tr class="days"><th class="name"><span class="eyebrow">Staff</span></th>${days.map((d, i) => {
+    const w = dow(d), hol = holidayOf(d); const cls = [(w === 0 || w === 6) ? 'wkend' : '', colCls(d, i), d === todayStr ? 'today' : '', hol ? 'hol' : ''].join(' ');
+    return `<th class="${cls}"${hol ? ` title="${esc(hol)}"` : ''}><span class="dow">${DOW[w][0]}</span><span class="dn">${parse(d).getUTCDate()}</span></th>`;
+  }).join('')}<th class="tot"><span class="eyebrow">Hrs</span></th></tr>`;
+
+  const marks = requestMarks(), changed = changedSincePost();
+  let body = '';
+  ROLES.forEach(role => {
+    if (state.roleFilter !== 'all' && state.roleFilter !== role) return;
+    const people = sortedStaff().filter(s => s.role === role);
+    if (!people.length) return;
+    body += `<tr class="group"><th>${esc(role)} <span class="sub" style="font-weight:400;color:var(--muted)">· ${people.length}</span></th><td colspan="${days.length + 1}"></td></tr>`;
+    people.forEach(s => {
+      let total = 0;
+      const target = Math.round((s.fte || 0) * PAY_HOURS * days.length / PAY_DAYS);
+      const cells = days.map((d, i) => {
+        const c = codeAt(s.id, d); total += workedHours(c);
+        const iss = issuesCache.byCell[s.id + '|' + d];
+        const flag = iss ? `<span class="flag ${iss.some(x => x.sev === 'crit') ? '' : 'warn'}"></span>` : '';
+        const w = dow(d);
+        const cls = [(w === 0 || w === 6) ? 'wkend' : '', colCls(d, i)].join(' ');
+        const k = s.id + '|' + d;
+        const pend = (marks[k] ? ' ' + marks[k] : '') + (changed.has(k) ? ' changed' : '');
+        return `<td class="${cls}"><button class="cell${pend}" data-s="${esc(s.id)}" data-d="${d}" aria-label="${esc(s.name)}, ${nice(d)}: ${c ? esc(SHIFTS[c]?.label || c) : 'off'}">${chip(c)}${flag}</button></td>`;
+      }).join('');
+      const over = total > target + 12;
+      body += `<tr><th class="name${s.id === state.me ? ' me' : ''}"><span class="nm">${esc(s.name)}</span><span class="meta">${esc(s.role)} · ${(+s.fte || 0).toFixed(1)} FTE${s.sample ? ' · sample' : ''}</span></th>${cells}<td class="tot num ${over ? 'ot' : ''}" title="Target about ${target}h for these ${days.length} days">${hrsText(total)}</td></tr>`;
+    });
+  });
+
+  const covRows = [];
+  const covs = days.map(coverageFor);
+  COV_GROUPS.forEach(role => {
+    if (!inFilter(role)) return;
+    ['day', 'night'].forEach(b => {
+      const tgt = (t[role] && t[role][b]) || 0;
+      if (!tgt && !covs.some(c => c[role][b])) return;
+      covRows.push(`<tr><th class="name">${esc(role)} · ${b === 'day' ? 'Day (at 1200)' : 'Night (at 2300)'}</th>${covs.map((c, i) => {
+        const have = c[role][b]; const cls = have < tgt ? 'short' : have > tgt ? 'over' : 'met';
+        return `<td class="${colCls(days[i], i)}"><span class="cov ${cls}" title="${have} scheduled, target ${tgt}">${have}/${tgt}</span></td>`;
+      }).join('')}<td class="tot"></td></tr>`);
+    });
+  });
+  const foot = covRows.join('');
+
+  return `<section class="panel">${head}<div class="grid-wrap" id="gridWrap"><table class="grid" id="grid"><thead>${wk}${dh}</thead><tbody>${body}</tbody><tfoot>${foot}</tfoot></table></div></section>`;
+}
+
+function viewDay(roleOpts) {
+  const d = visDays()[0];
+  const t = cfg().targets || {};
+  const head = `<div class="panel-head">${schedSwitch()}<h2>Daily roster</h2><span class="sub">${esc(nice(d))}${d === todayStr ? ' · today' : ''}</span>
+    <label class="inline" for="roleFilter">Show <select id="roleFilter">${roleOpts}</select></label><span class="spacer"></span>
+    <span class="sub">${state.canManage ? 'Click a name to change their shift' : 'View only'}</span></div>`;
+  if (!state.staff.length) return `<section class="panel">${head}${emptyStaff()}</section>`;
+  const people = sortedStaff().filter(s => state.roleFilter === 'all' || s.role === state.roleFilter);
+  const marks = requestMarks();
+  const person = s => {
+    const iss = issuesCache.byCell[s.id + '|' + d];
+    const flag = iss ? `<span class="flag ${iss.some(x => x.sev === 'crit') ? '' : 'warn'}" title="${esc(iss.map(x => x.msg).join(' '))}"></span>` : '';
+    const c = codeAt(s.id, d);
+    return `<button class="cell dayp${marks[s.id + '|' + d] ? ' ' + marks[s.id + '|' + d] : ''}${s.id === state.me ? ' me' : ''}" data-s="${esc(s.id)}" data-d="${d}" aria-label="${esc(s.name)}, ${esc(s.role)}: ${c ? esc(SHIFTS[c]?.label || c) : 'off'}"><span>${esc(s.name)}</span><span class="meta">${esc(s.role)}</span>${flag}</button>`;
+  };
+  const cols = CODES.map(code => {
+    const on = people.filter(s => codeAt(s.id, d) === code);
+    if (!on.length) return '';
+    return `<div class="daycol"><h3>${chip(code)} ${esc(SHIFTS[code].label)}<span class="sub">${on.length}</span></h3>${on.map(person).join('')}</div>`;
+  }).join('');
+  const off = people.filter(s => !codeAt(s.id, d));
+  const cov = coverageFor(d);
+  const covRows = COV_GROUPS.filter(r => inFilter(r) && ((t[r]?.day || 0) + (t[r]?.night || 0) + cov[r].day + cov[r].night > 0)).map(r => {
+    const cell = b => { const have = cov[r][b], tgt = t[r]?.[b] || 0; return `<td><span class="cov ${have < tgt ? 'short' : have > tgt ? 'over' : 'met'}" title="${have} scheduled, target ${tgt}">${have}/${tgt}</span></td>`; };
+    return `<tr><td>${esc(r)}</td>${cell('day')}${cell('night')}</tr>`;
+  }).join('');
+  const onDuty = people.filter(s => SHIFTS[codeAt(s.id, d)]?.duty).length;
+  return `<section class="panel">${head}
+    ${cols ? `<div class="daycols">${cols}</div>` : `<div class="empty"><strong>Nobody is scheduled on ${esc(nice(d))}</strong>${state.canManage ? 'Pick a name under Not scheduled to add a shift.' : ''}</div>`}
+    ${off.length ? `<details class="offlist"${cols ? '' : ' open'}><summary>Not scheduled · ${off.length}</summary><div class="daycols"><div class="daycol">${off.map(person).join('')}</div></div></details>` : ''}
+  </section>
+  <section class="panel"><div class="panel-head"><h2>Coverage</h2><span class="sub">${onDuty} on duty · day counted at 1200, night at 2300</span></div>
+    <div class="tbl-wrap"><table class="daycov"><thead><tr><th>Role</th><th>Day</th><th>Night</th></tr></thead><tbody>${covRows || '<tr><td colspan="3" class="det">No targets set.</td></tr>'}</tbody></table></div></section>`;
+}
+
+function inFilter(group) { return state.roleFilter === 'all' || state.roleFilter === group || (group === 'Charge' && state.roleFilter === 'RN'); }
+function colCls(d, i) { return i === 0 || isPayStart(d) ? 'ppstart' : dow(d) === 0 ? 'wkstart' : ''; }
+// Pay periods are numbered from the first one, starting Nov 1, 2026; earlier ones show dates only.
+function payNo(d) { const n = Math.floor(diffDays(ANCHOR, d) / PAY_DAYS) + 1; return n > 0 ? ' ' + n : ''; }
+
+function schedSwitch() {
+  return `<div class="seg" role="group" aria-label="Schedule view">${[['unit', 'Unit'], ['mine', 'My schedule']].map(([m, l]) => `<button type="button" data-act="schedMode" data-mode="${m}" aria-pressed="${state.schedMode === m}">${l}</button>`).join('')}</div>`;
+}
+
+function viewMySchedule() {
+  const pps = payPeriodsIn(visDays());
+  const days = pps.flat();
+  const me = staffById(state.me);
+  const pick = `<label class="inline" for="mySel">${me ? 'Showing' : 'Whose schedule?'} <select id="mySel"><option value="">Choose a name</option>${sortedStaff().map(s => `<option value="${esc(s.id)}" ${s.id === state.me ? 'selected' : ''}>${esc(s.name)} · ${esc(s.role)}</option>`).join('')}</select></label>`;
+  const head = `<div class="panel-head">${schedSwitch()}<h2>${me ? esc(me.name) : 'My schedule'}</h2>${me ? `<span class="sub">${esc(me.role)} · ${(+me.fte || 0).toFixed(1)} FTE</span>` : ''}<span class="spacer"></span>${pick}</div>`;
+  if (!state.staff.length) return `<section class="panel">${head}${emptyStaff()}</section>`;
+  if (!me) return `<section class="panel">${head}<div class="empty"><strong>Pick your name to see your schedule</strong>Your shifts, hours per pay period and requests show here. Choosing a name also sets <b>Acting as</b>, so you can send requests.</div></section>`;
+
+  const iss = issuesCache.list.filter(i => i.staff.id === me.id);
+  const marks = requestMarks(), changed = changedSincePost();
+  const isWork = c => SHIFTS[c] && (SHIFTS[c].duty || SHIFTS[c].worked);
+  const upcoming = days.filter(d => d >= todayStr && isWork(codeAt(me.id, d)));
+  const next = upcoming[0];
+  const totalShifts = days.filter(d => SHIFTS[codeAt(me.id, d)]?.duty).length;
+  const fteTarget = (me.fte || 0) * PAY_HOURS;
+
+  // Calendar: one band per pay period, Sun–Sat rows.
+  let cal = DOW.map(d => `<div class="dh">${d}</div>`).join('');
+  pps.forEach(pd => {
+    const hrs = pd.reduce((t, d) => t + workedHours(codeAt(me.id, d)), 0);
+    cal += `<div class="pp"><span>Pay period${payNo(pd[0])} · ${short(pd[0])}–${short(pd[13])}</span><span><b class="${hrs > PAY_HOURS ? 'ot' : ''}">${hrsText(hrs)}h</b> of ${PAY_HOURS}h${fteTarget && fteTarget !== PAY_HOURS ? ` · FTE target ${hrsText(fteTarget)}h` : ''}${hrs > PAY_HOURS ? ` · <span class="ot">${hrsText(hrs - PAY_HOURS)}h overtime</span>` : ''}</span></div>`;
+    cal += pd.map(d => {
+      const c = codeAt(me.id, d), sh = SHIFTS[c];
+      const w = dow(d), dt = parse(d);
+      const cls = ['cell', 'calday', d < todayStr ? 'past' : '', d === todayStr ? 'today' : '', (w === 0 || w === 6) ? 'wkend' : '', marks[me.id + '|' + d] || '', changed.has(me.id + '|' + d) ? 'changed' : ''].join(' ');
+      const num = dt.getUTCDate() === 1 || d === days[0] ? `${MON[dt.getUTCMonth()]} ${dt.getUTCDate()}` : dt.getUTCDate();
+      const [name, time] = sh ? (/ \d{4}–\d{4}$/.test(sh.label) ? [sh.label.replace(/ \d{4}–\d{4}$/, ''), sh.label.match(/\d{4}–\d{4}$/)[0]] : [sh.label, '']) : ['', ''];
+      const cellIss = issuesCache.byCell[me.id + '|' + d];
+      const flag = cellIss ? `<span class="flag ${cellIss.some(x => x.sev === 'crit') ? '' : 'warn'}"></span>` : '';
+      return `<button class="${cls}" data-s="${esc(me.id)}" data-d="${d}" aria-label="${nice(d)}: ${sh ? esc(sh.label) : 'off'}"><span class="dnum">${num}</span>${holidayOf(d) ? `<span class="hol">${esc(holidayOf(d))}</span>` : ''}${sh ? `<span class="shift ${sh.cls}">${esc(name)}${time ? `<small>${time}</small>` : ''}</span>` : ''}${flag}</button>`;
+    }).join('');
+  });
+
+  const myReqs = state.requests.filter(r => r.staffId === me.id || r.withId === me.id || r.claimedBy === me.id).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  const reqList = myReqs.length ? myReqs.map(r => myReqItem(r, me)).join('')
+    : `<li class="det">No requests yet. Use the form below to ask for time off, or to swap or give away a shift.</li>`;
+  const sentDates = new Set(state.requests.filter(r => r.status === 'pending' && r.staffId === me.id).map(r => r.date));
+  const opens = openShiftsFor(me);
+  const gives = claimable(me);
+  const giveList = gives.map(r => `<li><span class="pill offered">up for grabs</span><div class="grow"><div class="ttl">${esc(SHIFTS[r.code]?.label || r.code)}</div><div class="det">${nice(r.date)} · from ${esc(staffById(r.staffId)?.name || 'a teammate')}${r.note ? ` “${esc(r.note)}”` : ''}</div></div><button class="btn small primary" data-act="claim" data-id="${esc(r.id)}">Claim</button></li>`).join('');
+  const openList = opens.length ? opens.slice(0, 20).map(o => `<li><span class="pill short">${o.need} open</span><div class="grow"><div class="ttl">${esc(SHIFTS[o.code].label)}</div><div class="det">${nice(o.date)} · ${o.have} of ${o.target} scheduled</div></div>${sentDates.has(o.date) ? '<span class="det">Request sent</span>' : `<button class="btn small primary" data-act="pickup" data-d="${o.date}" data-c="${o.code}">Request this shift</button>`}</li>`).join('') + (opens.length > 20 ? `<li class="det">${opens.length - 20} more later on.</li>` : '')
+    : `<li class="det">No open ${esc(me.role)} shifts on your days off right now.</li>`;
+  const issList = iss.length ? iss.map(i => `<li><span class="sev ${i.sev === 'crit' ? '' : 'warn'}"></span><div class="grow"><div class="ttl">${nice(i.date)}</div><div class="det">${esc(i.msg)}</div></div></li>`).join('') : '';
+
+  return `<section class="panel">${head}
+    <div class="stats">
+      <div class="stat"><b>${next ? esc(nice(next)) : '—'}</b><span>${next ? `next shift · ${esc(SHIFTS[codeAt(me.id, next)].label)}` : 'no more shifts this period'}</span></div>
+      <div class="stat"><b class="num">${totalShifts}</b><span>shifts in ${pps.length === 1 ? 'this pay period' : pps.length + ' pay periods'}</span></div>
+      <div class="stat"><b class="num">${hrsText(days.reduce((t, d) => t + workedHours(codeAt(me.id, d)), 0))}h</b><span>paid hours of ${hrsText((me.fte || 0) * PAY_HOURS * pps.length)}h target</span></div>
+      <div class="stat"><b class="num ${iss.length ? 'bad' : ''}">${iss.length}</b><span>rule ${iss.length === 1 ? 'problem' : 'problems'}</span></div>
+    </div>
+    <div class="cal">${cal}</div></section>
+    <div class="two">
+      <section class="panel"><div class="panel-head"><h2>My requests</h2><span class="sub">A manager approves requests</span></div><ul class="list">${reqList}</ul>${requestForm(me)}</section>
+      <section class="panel"><div class="panel-head"><h2>Open shifts</h2><span class="sub">Shifts you could pick up</span></div><ul class="list">${giveList}${opens.length || !gives.length ? openList : ''}</ul></section>
+      ${iss.length ? `<section class="panel"><div class="panel-head"><h2>Rule problems</h2><span class="sub">A manager can fix these on the Unit view</span></div><ul class="list issues-list">${issList}</ul></section>` : ''}
+    </div>`;
+}
+
+function viewCoverage() {
+  const days = visDays();
+  if (!state.covDate || !days.includes(state.covDate)) state.covDate = days.includes(todayStr) ? todayStr : days[0];
+  const d = state.covDate;
+  const t = cfg().targets || {};
+  const rnRoles = ['RN'];
+  const nurses = hourly(d, rnRoles);
+  const techs = hourly(d, ['Medic']);
+  const tgtN = h => (isDayHour(h) ? t['RN']?.day || 0 : t['RN']?.night || 0);
+  const arrivals = cfg().arrivals || DEFAULT_CONFIG.arrivals;
+  const shortHours = nurses.filter((v, h) => v < tgtN(h)).length;
+  const peakRatio = Math.max(...arrivals.map((a, h) => nurses[h] ? a / nurses[h] : a));
+  const totalArr = arrivals.reduce((a, b) => a + b, 0);
+
+  // Chart geometry
+  const W = 720, H = 240, L = 34, R = 10, T = 64, B = 24;
+  const cw = (W - L - R) / 24;
+  const maxY = Math.max(4, ...nurses.map((v, h) => Math.max(v + techs[h], tgtN(h)))) + 1;
+  const y = v => T + (H - T - B) * (1 - v / maxY);
+  const maxA = Math.max(...arrivals, 1);
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Staff on duty by hour for ${nice(d)} compared with target">`;
+  for (let v = 0; v <= maxY; v += maxY > 12 ? 4 : 2) svg += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L - 6}" y="${y(v) + 3}" text-anchor="end">${v}</text>`;
+  // arrivals strip on top
+  svg += `<text x="${L}" y="11" style="font-family:var(--f-body);font-size:11px">Patient arrivals per hour (historical average)</text>`;
+  arrivals.forEach((a, h) => {
+    const bh = 34 * a / maxA;
+    svg += `<rect x="${L + h * cw + 3}" y="${52 - bh}" width="${cw - 6}" height="${bh}" fill="var(--muted)" opacity=".35" rx="2"><title>${String(h).padStart(2, '0')}00: ${a} arrivals</title></rect>`;
+  });
+  nurses.forEach((v, h) => {
+    const x = L + h * cw + 3, w = cw - 6;
+    const short = v < tgtN(h);
+    svg += `<rect x="${x}" y="${y(v)}" width="${w}" height="${y(0) - y(v)}" fill="${short ? 'var(--crit)' : 'var(--accent)'}" rx="2"><title>${String(h).padStart(2, '0')}00: ${v} nurses, target ${tgtN(h)}</title></rect>`;
+    if (techs[h]) svg += `<rect x="${x}" y="${y(v + techs[h])}" width="${w}" height="${y(v) - y(v + techs[h])}" fill="var(--accent)" opacity=".35" rx="2"><title>${techs[h]} medics</title></rect>`;
+  });
+  let path = '';
+  for (let h = 0; h < 24; h++) { const yy = y(tgtN(h)); path += `${h ? 'L' : 'M'}${L + h * cw},${yy} L${L + (h + 1) * cw},${yy} `; }
+  svg += `<path d="${path}" fill="none" stroke="var(--ink)" stroke-width="2" stroke-dasharray="5 3"/>`;
+  for (let h = 0; h < 24; h += 3) svg += `<text x="${L + h * cw + cw / 2}" y="${H - 8}" text-anchor="middle">${String(h).padStart(2, '0')}00</text>`;
+  svg += `</svg>`;
+
+  // Gantt of who is on duty
+  const prev = addDays(d, -1);
+  const rows = [];
+  sortedStaff().forEach(s => {
+    const segs = [];
+    const yc = codeAt(s.id, prev); if (SHIFTS[yc]?.duty && SHIFTS[yc].start + SHIFTS[yc].len > 24) segs.push({ code: yc, a: 0, b: SHIFTS[yc].start + SHIFTS[yc].len - 24 });
+    const tc = codeAt(s.id, d); if (SHIFTS[tc]?.duty) segs.push({ code: tc, a: SHIFTS[tc].start, b: Math.min(24, SHIFTS[tc].start + SHIFTS[tc].len) });
+    if (segs.length) rows.push({ s, segs });
+  });
+  const gantt = rows.length ? rows.map(({ s, segs }) => `<div class="g-row"><div class="who">${esc(s.name)} <small>${esc(s.role)}</small></div><div class="g-track">${segs.map(g => `<span class="g-bar ${SHIFTS[g.code].cls}" style="left:${g.a / 24 * 100}%;width:${(g.b - g.a) / 24 * 100}%">${esc(SHIFTS[g.code].show || g.code)}</span>`).join('')}</div></div>`).join('')
+    : `<div class="empty"><strong>Nobody is scheduled</strong>Assign shifts on the Schedule tab to see who is on duty.</div>`;
+
+  const dateOpts = days.map(x => `<option value="${x}" ${x === d ? 'selected' : ''}>${nice(x)}</option>`).join('');
+  const tgtRows = COV_GROUPS.map(r => `<tr><td>${esc(r)}</td><td><input type="number" min="0" max="40" id="tg-${r.replace(/\W/g, '')}-day" data-role="${esc(r)}" data-band="day" value="${t[r]?.day ?? 0}" aria-label="${esc(r)} day target"></td><td><input type="number" min="0" max="40" id="tg-${r.replace(/\W/g, '')}-night" data-role="${esc(r)}" data-band="night" value="${t[r]?.night ?? 0}" aria-label="${esc(r)} night target"></td></tr>`).join('');
+
+  return `<div class="cov-layout">
+  <section class="panel">
+    <div class="panel-head"><h2>Hourly coverage</h2>
+      <button class="iconbtn" data-act="covPrev" aria-label="Previous day">‹</button>
+      <select id="covDate" aria-label="Day">${dateOpts}</select>
+      <button class="iconbtn" data-act="covNext" aria-label="Next day">›</button>
+      <span class="spacer"></span>
+      <div class="legend"><span><span class="chip" style="background:var(--accent);min-width:14px;height:12px"></span>Nurses</span><span><span class="chip" style="background:var(--accent);opacity:.35;min-width:14px;height:12px"></span>Medics</span><span><span class="chip" style="background:var(--crit);min-width:14px;height:12px"></span>Below target</span><span>– – Nurse target</span></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><b class="num ${shortHours ? 'bad' : ''}">${shortHours}</b><span>hours below nurse target</span></div>
+      <div class="stat"><b class="num">${Math.min(...nurses)}–${Math.max(...nurses)}</b><span>nurses on duty (low–high)</span></div>
+      <div class="stat"><b class="num">${totalArr}</b><span>expected arrivals today</span></div>
+      <div class="stat"><b class="num">${peakRatio.toFixed(1)}</b><span>peak arrivals per nurse per hour</span></div>
+    </div>
+    <div class="panel-body chart-box">${svg}</div>
+    <div class="panel-head" style="border-top:1px solid var(--line)"><h2>On duty</h2><span class="sub">${nice(d)} · includes night shifts carried over from ${short(prev)}</span></div>
+    <div class="panel-body gantt"><div class="gantt-inner">${gantt}<div class="g-axis"><div></div><div><span>0000</span><span>0600</span><span>1200</span><span>1800</span><span>2400</span></div></div></div></div>
+  </section>
+  <aside class="panel targets">
+    <div class="panel-head"><h2>Staffing targets</h2></div>
+    <div class="panel-body">
+      <table><thead><tr><th>Role</th><th>Day</th><th>Night</th></tr></thead><tbody>${tgtRows}</tbody></table>
+      <p class="sub" style="color:var(--muted);font-size:12px;margin:10px 0 0">Day counts who is on duty at 1200, night at 2300. Open shifts are created wherever the schedule falls below these numbers.${state.canManage ? '' : ' Only managers can change targets.'}</p>
+    </div>
+  </aside></div>`;
+}
+
+// The request form, shared by the Requests tab and My schedule.
+function requestForm(me) {
+  const peers = sortedStaff().filter(s => s.role === me.role && s.id !== me.id);
+  return `<form class="req" id="reqForm">
+      <div class="eyebrow">New request as ${esc(me.name)}</div>
+      <div class="fields">
+        <label for="rqType">Type<select id="rqType"><option value="timeoff">Time off</option><option value="swap">Swap a shift</option><option value="giveaway">Give away a shift</option></select></label>
+        <label for="rqDate">Date<input type="date" id="rqDate" min="${visDays()[0]}" value="${addDays(todayStr, 14)}" required></label>
+        <label for="rqUntil">Through (time off)<input type="date" id="rqUntil"></label>
+        <label for="rqCode">Time off as<select id="rqCode"><option value="PTO">Leave</option><option value="X">RDO</option><option value="EDU">Education</option></select></label>
+        <label for="rqWith">Swap with<select id="rqWith"><option value="">Choose teammate</option>${peers.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('')}</select></label>
+      </div>
+      <label for="rqNote" style="display:grid;gap:4px;font-size:12px;color:var(--muted)">Note<input type="text" id="rqNote" maxlength="160" placeholder="Optional"></label>
+      <div><button class="btn primary" type="submit">Send request</button></div>
+    </form>`;
+}
+// Open shifts this person could pick up: their role (charge for RNs), from today, on days they are off.
+function openShiftsFor(me) {
+  return openShifts().map(o => {
+    const charge = o.role === 'Charge';
+    return { ...o, code: bandCode(o.role, o.band), forRole: charge ? 'RN' : o.role };
+  }).filter(o => o.forRole === me.role && !codeAt(me.id, o.date));
+}
+
+// Self-scheduling: staff pick their own working shifts in an open schedule, up to each shift's target and their FTE hours.
+function selfSchedFor(staffId, date) {
+  if (state.canManage || !staffId || staffId !== state.me || date < todayStr) return false;
+  const p = state.periods[periodOf(date)];
+  return !!p && p.state === 'open' && (!p.until || todayStr <= p.until);
+}
+const selfCodes = role => CODES.filter(c => SHIFTS[c].duty && shiftOk(c, role) && !SHIFTS[c].charge && !c.startsWith('OT'));
+function selfBlock(s, date, code) {
+  const t = cfg().targets || {}, cov = coverageFor(date), cur = codeAt(s.id, date);
+  for (const [band, h] of [['day', 12], ['night', 23]]) {
+    const tgt = (t[s.role] && t[s.role][band]) || 0;
+    if (tgt && covers(code, h) && !covers(cur, h) && cov[s.role][band] >= tgt) return 'Full';
+  }
+  const pd = span(payStartOf(date), addDays(payStartOf(date), PAY_DAYS - 1));
+  const hrs = pd.reduce((n, d) => n + workedHours(d === date ? code : codeAt(s.id, d)), 0);
+  if (hrs > (s.fte || 1) * PAY_HOURS) return 'Past your FTE';
+  return '';
+}
+// Shifts teammates are giving away that this person could take: same role, from today, on a day they are off.
+function claimable(me) {
+  return state.requests.filter(r => r.type === 'giveaway' && r.status === 'offered' && r.staffId !== me.id && r.date >= todayStr
+    && staffById(r.staffId)?.role === me.role && !codeAt(me.id, r.date));
+}
+// Cell marks for open requests: blue while waiting on a teammate, amber while waiting on a manager.
+function requestMarks() {
+  const m = {};
+  state.requests.forEach(r => {
+    if (r.status !== 'pending' && r.status !== 'offered') return;
+    const days = r.type === 'timeoff' ? span(r.date, r.until && r.until > r.date ? r.until : r.date).slice(0, 31) : [r.date];
+    [r.staffId, r.withId, r.claimedBy].filter(Boolean).forEach(id => days.forEach(d => { if (m[id + '|' + d] !== 'pending') m[id + '|' + d] = r.status; }));
+  });
+  return m;
+}
+const statusText = r => r.status === 'offered' ? (r.type === 'swap' ? 'awaiting teammate' : 'up for grabs') : r.status;
+// One line in My requests: what was asked, with whom, and the buttons this person can use.
+function myReqItem(r, me) {
+  const who = id => esc(staffById(id)?.name || 'a teammate');
+  let det = '', acts = '';
+  if (r.type === 'pickup') det = esc(SHIFTS[r.code]?.label || '');
+  else if (r.type === 'swap') det = r.withId === me.id ? `Asked by ${who(r.staffId)}: their ${chip(codeAt(r.staffId, r.date)) || 'day off'} for your ${chip(codeAt(me.id, r.date)) || 'day off'}` : `With ${who(r.withId)}`;
+  else if (r.type === 'giveaway') det = r.claimedBy === me.id ? `From ${who(r.staffId)} · ${chip(r.code)}` : `${chip(r.code)} · ${r.claimedBy ? `claimed by ${who(r.claimedBy)}` : 'waiting for a teammate to claim it'}`;
+  if (r.note) det += ` “${esc(r.note)}”`;
+  if (r.status === 'offered' && r.type === 'swap' && r.withId === me.id) acts = `<button class="btn small primary" data-act="peerAccept" data-id="${esc(r.id)}">Accept</button><button class="btn small" data-act="peerDecline" data-id="${esc(r.id)}">Decline</button>`;
+  else if ((r.status === 'pending' || r.status === 'offered') && r.staffId === me.id) acts = `<button class="btn small" data-act="withdraw" data-id="${esc(r.id)}">Withdraw</button>`;
+  return `<li><span class="pill ${esc(r.status)}">${esc(statusText(r))}</span><div class="grow"><div class="ttl">${esc(REQ_TYPES[r.type] || r.type)} · ${nice(r.date)}${r.until && r.until !== r.date ? ` – ${nice(r.until)}` : ''}</div><div class="det">${det}</div></div>${acts}</li>`;
+}
+
+function viewRequests() {
+  const me = staffById(state.me);
+  const opens = openShifts();
+  const t = cfg().targets || {};
+  const openList = opens.length ? opens.slice(0, 80).map(o => {
+    const charge = o.role === 'Charge';
+    const code = bandCode(o.role, o.band);
+    const role = charge ? 'RN' : o.role;
+    const mine = me && me.role === role && !codeAt(me.id, o.date);
+    const already = me && state.requests.some(r => r.status === 'pending' && r.staffId === me.id && r.date === o.date);
+    return `<li><span class="pill short">${o.need} open</span><div class="grow"><div class="ttl">${charge ? SHIFTS[code].label : `${esc(o.role)} · ${SHIFTS[code].label}`}</div><div class="det">${nice(o.date)} · ${o.have} of ${o.target} scheduled</div></div>
+      ${me ? (already ? `<span class="det">Request sent</span>` : mine ? `<button class="btn small primary" data-act="pickup" data-d="${o.date}" data-c="${code}">Request this shift</button>` : `<span class="det">${me.role !== role ? 'Different role' : 'You already work this day'}</span>`) : ''}</li>`;
+  }).join('') + (opens.length > 80 ? `<li class="det">${opens.length - 80} more open shifts later in the period.</li>` : '')
+    : `<div class="empty"><strong>Every shift is covered</strong>No role falls below its target for the rest of this period.</div>`;
+
+  const rank = r => r.status === 'pending' ? 0 : r.status === 'offered' ? 1 : 2;
+  const reqs = [...state.requests].sort((a, b) => rank(a) - rank(b) || String(b.createdAt).localeCompare(String(a.createdAt)));
+  const reqList = reqs.length ? reqs.map(r => {
+    const s = staffById(r.staffId), w = staffById(r.withId);
+    let what = '';
+    if (r.type === 'pickup') what = `wants to pick up ${chip(r.code)} on ${nice(r.date)}`;
+    if (r.type === 'timeoff') what = `asks for ${chip(r.code || 'PTO')} on ${nice(r.date)}${r.until && r.until !== r.date ? ` through ${nice(r.until)}` : ''}`;
+    if (r.type === 'giveaway') what = `offers ${chip(r.code)} on ${nice(r.date)}${r.claimedBy ? ` · claimed by ${esc(staffById(r.claimedBy)?.name || 'a teammate')}` : ''}`;
+    if (r.type === 'swap') what = `wants to swap ${chip(codeAt(r.staffId, r.date)) || 'their day'} on ${nice(r.date)} with ${esc(w ? w.name : 'a teammate')} ${chip(codeAt(r.withId, r.date))}`;
+    const waiting = r.status === 'offered' ? `<span class="det">${r.type === 'swap' ? `Waiting for ${esc(w ? w.name : 'the teammate')} to accept` : 'Waiting for a teammate to claim it'}</span>` : '';
+    const acts = r.status === 'pending' ? (state.canManage
+      ? `<button class="btn small primary" data-act="approve" data-id="${esc(r.id)}">Approve</button><button class="btn small" data-act="deny" data-id="${esc(r.id)}">Deny</button>`
+      : (r.staffId === state.me ? `<button class="btn small" data-act="withdraw" data-id="${esc(r.id)}">Withdraw</button>` : ''))
+      : waiting + (r.status === 'offered' && state.canManage ? `<button class="btn small" data-act="deny" data-id="${esc(r.id)}">Cancel</button>` : '');
+    return `<li><span class="pill ${esc(r.status)}">${esc(statusText(r))}</span><div class="grow"><div class="ttl">${esc(REQ_TYPES[r.type] || r.type)} · ${esc(s ? s.name : 'Former staff')}</div><div class="det">${what}${r.note ? ` · “${esc(r.note)}”` : ''}</div></div>${acts}</li>`;
+  }).join('') : `<div class="empty"><strong>No requests yet</strong>Staff requests for time off, swaps, giveaways and open shifts will appear here.</div>`;
+
+  const form = me ? requestForm(me) : `<div class="banner" style="margin:14px">Choose your name under <b>Acting as</b> to request time off, swap a shift or pick up an open shift.</div>`;
+
+  return `<div class="two">
+    <section class="panel"><div class="panel-head"><h2>Open shifts</h2><span class="sub">Below target from today to ${short(visDays().at(-1))}</span></div><ul class="list">${openList}</ul></section>
+    <section class="panel"><div class="panel-head"><h2>Requests</h2><span class="sub">${state.canManage ? 'Approving a request updates the schedule' : 'A manager approves requests'}</span></div><ul class="list">${reqList}</ul>${form}</section>
+  </div>`;
+}
+
+function viewRules() {
+  const list = issuesCache.list;
+  const items = list.length ? list.map(i => `<li><span class="sev ${i.sev === 'crit' ? '' : 'warn'}"></span>${chip(codeAt(i.staff.id, i.date))}<div class="grow"><div class="ttl">${esc(i.staff.name)} · ${nice(i.date)}</div><div class="det">${esc(i.msg)}</div></div><button class="btn small" data-act="goto" data-s="${esc(i.staff.id)}" data-d="${i.date}">Show in schedule</button></li>`).join('')
+    : `<div class="empty"><strong>No rule problems</strong>Rest periods, overtime and credentials all check out for this period.</div>`;
+  return `<section class="panel"><div class="panel-head"><h2>Rule checks</h2><span class="sub">10h minimum rest between shifts · no more than three 12s in a row · overtime past 80h in a 2-week pay period · required certifications current on each shift</span></div><ul class="list issues-list">${items}</ul></section>`;
+}
+
+function viewStaff() {
+  // Hours are for one 80-hour pay period: the one holding today if it is in view, else the first one in view.
+  const vis = visDays();
+  const days = span(payStartOf(vis.includes(todayStr) ? todayStr : vis[0]), addDays(payStartOf(vis.includes(todayStr) ? todayStr : vis[0]), PAY_DAYS - 1));
+  const end = vis.at(-1);
+  if (!state.staff.length) return `<section class="panel"><div class="panel-head"><h2>Staff &amp; credentials</h2></div>${emptyStaff()}</section>`;
+  const order = (STAFF_SORTS[state.staffSort] || STAFF_SORTS.role)[1];
+  const rows = [...state.staff].sort(order).map(s => {
+    const hrs = days.reduce((t, d) => t + workedHours(codeAt(s.id, d)), 0);
+    const target = Math.round((s.fte || 0) * PAY_HOURS);
+    const pct = target ? Math.min(100, hrs / target * 100) : 0;
+    const req = REQUIRED_CREDS[s.role] || [];
+    const extra = Object.keys(s.creds || {}).filter(c => !req.includes(c));
+    const creds = [...req, ...extra].map(c => {
+      const st = credStatus(s, c, todayStr);
+      const st2 = st === 'ok' ? credStatus(s, c, end) : st;
+      const cls = st === 'exp' ? 'exp' : st === 'missing' ? 'missing' : (st2 === 'exp' || st === 'soon') ? 'soon' : '';
+      const when = s.creds && s.creds[c] ? `exp ${short(s.creds[c])} ${parse(s.creds[c]).getUTCFullYear()}` : 'not on file';
+      return `<span class="cred ${cls}" title="${esc(c)} ${when}">${esc(c)}${cls ? ` · ${st === 'missing' ? 'missing' : short(s.creds[c])}` : ''}</span>`;
+    }).join('') || '<span class="det" style="color:var(--muted)">None required</span>';
+    const picked = state.staffSel.has(s.id);
+    return `<tr class="${picked ? 'picked' : ''}">${state.canManage ? `<td class="pick"><input type="checkbox" data-pick="${esc(s.id)}" ${picked ? 'checked' : ''} aria-label="Select ${esc(s.name)}"></td>` : ''}<td><b style="font-weight:500">${esc(s.name)}</b>${s.userId && state.managers.includes(s.userId) ? '<span class="tag-mgr">manager</span>' : ''}${s.sample ? ' <span class="sub" style="color:var(--muted);font-size:11px">sample</span>' : ''}</td><td>${esc(s.role)}</td><td class="num">${(+s.fte || 0).toFixed(1)}</td>
+      <td><div style="display:flex;align-items:center;gap:8px"><div class="bar"><i class="${hrs > PAY_HOURS ? 'over' : ''}" style="width:${pct}%"></i></div><span class="num ${hrs > PAY_HOURS ? 'ot' : ''}" title="${hrs > PAY_HOURS ? hrsText(hrs - PAY_HOURS) + 'h overtime' : 'FTE target ' + target + 'h of ' + PAY_HOURS + 'h'}">${hrsText(hrs)}/${target}h</span></div></td>
+      <td>${creds}</td><td>${esc(s.pref || '')}</td>
+      <td>${state.canManage ? `<button class="btn small" data-act="editStaff" data-id="${esc(s.id)}">Edit</button>` : ''}</td></tr>`;
+  }).join('');
+  for (const id of state.staffSel) if (!staffById(id)) state.staffSel.delete(id);
+  const allPicked = state.staffSel.size === state.staff.length;
+  return `<section class="panel"><div class="panel-head"><h2>Staff &amp; credentials</h2><span class="sub">${state.staff.length} people · hours for pay period${payNo(days[0])}, ${short(days[0])}–${short(days[13])} (${PAY_HOURS}h)</span><span class="spacer"></span><label class="inline" for="staffSort">Sort <select id="staffSort">${Object.entries(STAFF_SORTS).map(([k, [l]]) => `<option value="${k}" ${k === state.staffSort ? 'selected' : ''}>${l}</option>`).join('')}</select></label>${state.canManage ? '<button class="btn" data-act="managers">Managers</button><button class="btn" data-act="importStaff">Import staff</button><button class="btn primary" data-act="addStaff">Add staff member</button>' : ''}</div>
+  ${state.canManage ? bulkBar() : ''}
+  <div class="tbl-wrap"><table class="staff"><thead><tr>${state.canManage ? `<th class="pick"><input type="checkbox" data-pick="all" ${allPicked ? 'checked' : ''} aria-label="Select everyone"></th>` : ''}<th>Name</th><th>Role</th><th>FTE</th><th>Hours this pay period</th><th>Certifications</th><th>Preference</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
+}
+
+function bulkBar() {
+  const n = state.staffSel.size;
+  const roleOpts = ROLES.filter(r => state.staff.some(s => s.role === r)).map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('');
+  const hasSample = state.staff.some(s => s.sample);
+  return `<div class="bulkbar"><span class="sub">Select</span>
+    <select id="pickRole" aria-label="Select everyone in a role"><option value="">By role…</option>${roleOpts}</select>
+    ${hasSample ? '<button class="btn small" data-act="pickSample">Sample staff</button>' : ''}
+    <span class="spacer" style="flex:1"></span>
+    ${n ? `<b style="font-weight:500">${n} selected</b><button class="btn small" data-act="pickClear">Clear</button>
+    <button class="btn small danger${state.bulkArm ? ' armed' : ''}" data-act="bulkRemove" ${state.bulkBusy ? 'disabled' : ''}>${state.bulkBusy ? 'Removing…' : state.bulkArm ? `Click again to remove ${n}` : `Remove ${n} from roster`}</button>` : '<span class="sub">Tick people to remove several at once</span>'}
+  </div>`;
+}
+async function bulkRemove() {
+  const ids = [...state.staffSel];
+  const names = new Map(ids.map(id => [id, staffById(id)?.name]));
+  state.bulkBusy = true; state.bulkArm = false; render();
+  let i = 0, failed = 0;
+  const worker = async () => {
+    while (i < ids.length) {
+      const id = ids[i++];
+      try { if (state.db) await queued('staff/' + id, () => state.db.doc('staff/' + id).delete()); } catch (err) { failed++; continue; }
+      state.staff = state.staff.filter(x => x.id !== id); state.staffSel.delete(id);
+    }
+  };
+  await Promise.all(Array.from({ length: 4 }, worker));
+  state.bulkBusy = false; render();
+  const done = ids.length - failed;
+  toast(failed ? `Removed ${done}; ${failed} could not be removed. Try again.` : `${done === 1 ? names.get(ids[0]) : done + ' people'} removed. Past shifts stay in the schedule history.`);
+}
+
+// ---------- Reports ----------
+const REPORTS = [['hours', 'Hours & leave'], ['calloffs', 'Call-offs'], ['fair', 'Holidays & weekends'], ['history', 'Change history']];
+const rptPP = () => state.rptPP || payStartOf(todayStr);
+// Holidays and weekends look back the chosen months and ahead through the next schedule.
+const fairWindow = () => [addMonths(todayStr, -state.rptMonths), addDays(periodOf(todayStr), PERIOD_DAYS * 2 - 1)];
+function reportPeriods() {
+  const [a, b] = state.rptTab === 'hours' ? [rptPP(), addDays(rptPP(), PAY_DAYS - 1)] : state.rptTab === 'fair' ? fairWindow() : [null, null];
+  const out = [];
+  if (a) for (let p = periodOf(a); p <= b; p = addDays(p, PERIOD_DAYS)) out.push(p);
+  return out;
+}
+const loadedAll = ps => !state.db || ps.every(p => state.rowsBy[p]);
+const loadingBody = '<div class="empty"><strong>Loading the schedule…</strong></div>';
+const monthsSel = () => `<label class="inline" for="rptMonths">Look back <select id="rptMonths">${[3, 6, 12].map(m => `<option value="${m}" ${m === state.rptMonths ? 'selected' : ''}>${m} months</option>`).join('')}</select></label>`;
+const dash = v => v ? hrsText(v) : '<span style="color:var(--muted)">–</span>';
+
+function viewReports() {
+  if (!REPORTS.some(([k]) => k === state.rptTab)) state.rptTab = 'hours';
+  const r = { hours: rptHours, calloffs: rptCalloffs, fair: rptFair, history: rptHistory }[state.rptTab]();
+  return `<section class="panel"><div class="panel-head"><h2>Reports</h2><div class="seg noprint" role="group" aria-label="Report">${REPORTS.map(([k, l]) => `<button type="button" data-act="rptTab" data-tab="${k}" aria-pressed="${state.rptTab === k}">${l}</button>`).join('')}</div><span class="spacer"></span><div class="row-gap noprint">${r.tools}</div></div>${r.body}</section>`;
+}
+function hoursRows(p) {
+  const days = span(p, addDays(p, PAY_DAYS - 1));
+  return [...state.staff].sort(STAFF_SORTS.role[1]).map(s => {
+    const h = { worked: 0, ot: 0, edu: 0, adm: 0, leave: 0, co: 0 };
+    days.forEach(d => {
+      const c = codeAt(s.id, d), sh = SHIFTS[c]; if (!sh) return;
+      if (sh.duty) h[c.startsWith('OT') ? 'ot' : 'worked'] += workedHours(c);
+      else if (c === 'EDU') h.edu += workedHours(c);
+      else if (c === 'ADM') h.adm += workedHours(c);
+      else if (c === 'PTO') h.leave += sh.len;
+      else if (c === 'CO') h.co++;
+    });
+    const total = h.worked + h.ot + h.edu + h.adm, target = Math.round((s.fte || 0) * PAY_HOURS);
+    return { s, ...h, total, target, diff: total - target, over: Math.max(0, total - PAY_HOURS) };
+  });
+}
+function rptHours() {
+  const p = rptPP(), cur = payStartOf(todayStr);
+  const opts = Array.from({ length: 13 }, (_, i) => addDays(cur, (i - 6) * PAY_DAYS)).map(x => `<option value="${x}" ${x === p ? 'selected' : ''}>Pay period${payNo(x)} · ${short(x)}–${short(addDays(x, PAY_DAYS - 1))}${x === cur ? ' (current)' : ''}</option>`).join('');
+  const tools = `<label class="inline" for="rptPP">Pay period <select id="rptPP">${opts}</select></label><button class="btn" data-act="exportHours">Export CSV</button><button class="btn" data-act="print">Print</button>`;
+  if (!state.staff.length) return { tools, body: emptyStaff() };
+  if (!loadedAll(reportPeriods())) return { tools, body: loadingBody };
+  const rows = hoursRows(p);
+  const sum = k => rows.reduce((t, r) => t + r[k], 0);
+  const cols = ['worked', 'ot', 'edu', 'adm'];
+  const body = `<div class="tbl-wrap"><table class="staff"><thead><tr><th>Name</th><th>Role</th><th class="right">FTE target</th><th class="right">Worked</th><th class="right">Overtime shifts</th><th class="right">Education</th><th class="right">Admin</th><th class="right">Scheduled</th><th class="right">vs target</th><th class="right">Past 80h</th><th class="right">Leave</th><th class="right">Call-offs</th></tr></thead>
+    <tbody>${rows.map(r => `<tr><td>${esc(r.s.name)}</td><td>${esc(r.s.role)}</td><td class="num right">${r.target}</td>${cols.map(k => `<td class="num right">${dash(r[k])}</td>`).join('')}<td class="num right"><b>${hrsText(r.total)}</b></td><td class="num right ${r.diff > 0 ? 'ot' : ''}">${r.diff > 0 ? '+' : ''}${hrsText(r.diff)}</td><td class="num right ${r.over ? 'ot' : ''}">${dash(r.over)}</td><td class="num right">${dash(r.leave)}</td><td class="num right">${r.co || dash(0)}</td></tr>`).join('')}</tbody>
+    <tfoot><tr><td>Unit total</td><td>${rows.length} people</td><td class="num right">${sum('target')}</td>${cols.map(k => `<td class="num right">${hrsText(sum(k))}</td>`).join('')}<td class="num right">${hrsText(sum('total'))}</td><td class="num right">${sum('diff') > 0 ? '+' : ''}${hrsText(sum('diff'))}</td><td class="num right">${hrsText(sum('over'))}</td><td class="num right">${hrsText(sum('leave'))}</td><td class="num right">${sum('co')}</td></tr></tfoot></table></div>
+    <p class="hint" style="padding:10px 14px">Scheduled counts worked shifts, overtime shifts, education and admin, the same hours the schedule shows. Leave is listed on its own. Call-offs are shifts marked as a call-off or sick.</p>`;
+  return { tools, body };
+}
+function rptCalloffs() {
+  const since = addMonths(todayStr, -state.rptMonths);
+  const tools = monthsSel() + '<button class="btn" data-act="print">Print</button>';
+  const list = state.calloffs.filter(c => c.date >= since).sort((a, b) => b.date.localeCompare(a.date));
+  if (!list.length) return { tools, body: `<div class="empty"><strong>No call-offs since ${short(since)}</strong>To record one, click a shift on the schedule and choose Mark call-off or Mark sick.</div>` };
+  const by = {};
+  list.forEach(c => { const o = by[c.staffId] = by[c.staffId] || { sick: 0, calloff: 0, last: '' }; o[c.kind === 'sick' ? 'sick' : 'calloff']++; if (c.date > o.last) o.last = c.date; });
+  const rows = Object.entries(by).map(([id, o]) => ({ s: staffById(id), ...o, total: o.sick + o.calloff })).filter(r => r.s).sort((a, b) => b.total - a.total || byName(a.s, b.s));
+  const body = `<div class="tbl-wrap"><table class="staff"><thead><tr><th>Name</th><th>Role</th><th class="right">Sick</th><th class="right">Call-off</th><th class="right">Total</th><th>Most recent</th></tr></thead><tbody>${rows.map(r => `<tr><td>${esc(r.s.name)}</td><td>${esc(r.s.role)}</td><td class="num right">${r.sick}</td><td class="num right">${r.calloff}</td><td class="num right"><b>${r.total}</b></td><td>${nice(r.last)}</td></tr>`).join('')}</tbody></table></div>
+    <div class="panel-head" style="border-top:1px solid var(--line)"><h2>Recent</h2><span class="sub">Since ${short(since)}</span></div>
+    <ul class="list">${list.slice(0, 30).map(c => `<li>${chip(c.shift)}<div class="grow"><div class="ttl">${esc(staffById(c.staffId)?.name || 'Former staff')} · ${nice(c.date)}</div><div class="det">${c.kind === 'sick' ? 'Sick' : 'Call-off'}${SHIFTS[c.shift] ? ' · ' + esc(SHIFTS[c.shift].label) : ''}</div></div><button class="btn small noprint" data-act="goto" data-s="${esc(c.staffId)}" data-d="${c.date}">Show in schedule</button></li>`).join('')}</ul>`;
+  return { tools, body };
+}
+function rptFair() {
+  const [from, to] = fairWindow();
+  const tools = monthsSel() + '<button class="btn" data-act="print">Print</button>';
+  if (!state.staff.length) return { tools, body: emptyStaff() };
+  if (!loadedAll(reportPeriods())) return { tools, body: loadingBody };
+  const days = span(from, to), hols = days.filter(holidayOf), payPeriods = days.length / PAY_DAYS;
+  const stats = sortedStaff().map(s => {
+    const on = d => !!SHIFTS[codeAt(s.id, d)]?.duty;
+    return { s, hw: hols.filter(on), we: days.filter(d => isWeekend(d) && on(d)).length };
+  });
+  const roles = ROLES.filter(r => bandCode(r, 'day') && state.staff.some(s => s.role === r));
+  const upcoming = hols.filter(d => d >= todayStr).slice(0, 4).map(d => `<div><h3>${esc(holidayOf(d))} · ${nice(d)}</h3>${roles.map(r => {
+    const mine = stats.filter(x => x.s.role === r);
+    const working = mine.filter(x => SHIFTS[codeAt(x.s.id, d)]?.duty).length;
+    const next = mine.filter(x => !codeAt(x.s.id, d)).sort((a, b) => a.hw.length - b.hw.length || a.we - b.we || byName(a.s, b.s)).slice(0, 3);
+    return `<p><b>${esc(r)}</b> · ${working} scheduled${next.length ? ` · next up: ${next.map(x => `${esc(x.s.name)} (${x.hw.length})`).join(', ')}` : ''}</p>`;
+  }).join('')}</div>`).join('');
+  const body = `<div class="tbl-wrap"><table class="staff"><thead><tr><th>Name</th><th>Role</th><th class="right">Holidays worked</th><th>Which</th><th class="right">Weekend shifts</th><th class="right">Per pay period</th></tr></thead><tbody>${stats.map(x => `<tr><td>${esc(x.s.name)}</td><td>${esc(x.s.role)}</td><td class="num right"><b>${x.hw.length}</b></td><td style="color:var(--muted);font-size:12px">${x.hw.map(d => esc(holidayOf(d))).join(', ')}</td><td class="num right">${x.we}</td><td class="num right">${(x.we / payPeriods).toFixed(1)}</td></tr>`).join('')}</tbody></table></div>
+    <p class="hint" style="padding:10px 14px">${short(from)} ${parse(from).getUTCFullYear()} – ${short(to)} ${parse(to).getUTCFullYear()}, including shifts already scheduled. Holidays are the 11 US federal holidays on their calendar dates.</p>
+    ${upcoming ? `<div class="panel-head" style="border-top:1px solid var(--line)"><h2>Whose turn is it?</h2><span class="sub">Upcoming holidays · next up is whoever is off that day and has worked the fewest holidays, then the fewest weekends</span></div><div class="upcoming">${upcoming}</div>` : ''}`;
+  return { tools, body };
+}
+// Names of whoever made a change come from their sign-in profile; fetched once per person.
+function resolveNames(ids) {
+  const need = [...new Set(ids)].filter(id => id && !(id in state.names));
+  if (!need.length || !state.user) return;
+  need.forEach(id => { state.names[id] = ''; });
+  state.user.profiles(need).then(ps => { need.forEach(id => { state.names[id] = (ps[id] && ps[id].name) || ''; }); render(); }).catch(() => {});
+}
+function rptHistory() {
+  const opts = `<option value="">Everyone</option>${sortedStaff().map(s => `<option value="${esc(s.id)}" ${s.id === state.histWho ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}`;
+  const tools = `<label class="inline" for="histWho">Staff <select id="histWho">${opts}</select></label><button class="btn" data-act="print">Print</button>`;
+  const list = state.changes.filter(c => !state.histWho || c.staffId === state.histWho).slice(0, 300);
+  if (!list.length) return { tools, body: '<div class="empty"><strong>No changes yet</strong>Every edit to the schedule from now on is listed here.</div>' };
+  resolveNames(list.map(c => c.by));
+  const by = c => state.names[c.by] || staffById(c.byStaff)?.name || (c.by && c.by === state.myId ? 'You' : 'A manager');
+  const when = c => { const t = new Date(c.at); return isNaN(t) ? '' : t.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }); };
+  const body = `<div class="tbl-wrap"><table class="staff"><thead><tr><th>When</th><th>Changed by</th><th>Staff</th><th>Shift date</th><th>Change</th></tr></thead><tbody>${list.map(c => `<tr><td class="num" style="white-space:nowrap">${esc(when(c))}</td><td>${esc(by(c))}</td><td>${esc(staffById(c.staffId)?.name || 'Former staff')}</td><td style="white-space:nowrap">${nice(c.date)}</td><td>${chip(c.from) || '<span style="color:var(--muted)">Off</span>'} → ${chip(c.to) || '<span style="color:var(--muted)">Off</span>'}${postedChange(c) ? ' <span class="pill offered">after posting</span>' : ''}</td></tr>`).join('')}</tbody></table></div>
+    <p class="hint" style="padding:10px 14px">The latest ${state.changes.length >= 500 ? '500 ' : ''}changes, newest first.</p>`;
+  return { tools, body };
+}
+
+// ---------- Cell popover ----------
+let popEl = null;
+function openPop(staffId, date) {
+  state.sel = { staffId, date };
+  if (!popEl) { popEl = document.createElement('div'); popEl.className = 'pop'; popEl.setAttribute('role', 'dialog'); document.body.appendChild(popEl); }
+  renderPop();
+}
+function renderPop() {
+  const { staffId, date } = state.sel;
+  const s = staffById(staffId); if (!s) return closePop();
+  const cur = codeAt(staffId, date);
+  const iss = issuesCache.byCell[staffId + '|' + date] || [];
+  // Staff picking their own shifts see only the shifts open to them, with full ones greyed out.
+  const self = selfSchedFor(staffId, date);
+  const codes = self ? selfCodes(s.role) : CODES.filter(c => (shiftOk(c, s.role) && c !== 'CO') || c === cur);
+  const opt = c => { const why = self && c !== cur ? selfBlock(s, date, c) : ''; return `<button class="opt ${c === cur ? 'cur' : ''}" data-code="${c}"${why ? ` disabled title="${esc(why)}" style="opacity:.45;cursor:not-allowed"` : ''}>${chip(c)}<span>${esc(why || SHIFTS[c].label.replace(/ \d.*$/, ''))}</span></button>`; };
+  const hol = holidayOf(date);
+  const canClear = !self || selfCodes(s.role).includes(cur);
+  const callOff = state.canManage && SHIFTS[cur]?.duty ? `<div class="row"><button class="btn small" data-calloff="calloff">Mark call-off</button><button class="btn small" data-calloff="sick">Mark sick</button></div>` : '';
+  popEl.innerHTML = `<h3>${esc(s.name)}</h3><div class="sub">${nice(date)} · ${esc(s.role)}${hol ? ' · ' + esc(hol) : ''}${self ? ' · pick your shift' : ''}</div>
+    <div class="opts">${codes.map(opt).join('')}</div>
+    ${iss.length ? `<ul class="issues">${iss.map(i => `<li class="${i.sev === 'crit' ? '' : 'warn'}">${esc(i.msg)}</li>`).join('')}</ul>` : ''}
+    ${callOff}
+    <div class="row">${canClear ? '<button class="btn small" data-code="">Clear</button>' : '<span></span>'}<button class="btn small" data-close>Close</button></div>`;
+  const cell = main.querySelector(`.cell[data-s="${CSS.escape(staffId)}"][data-d="${date}"]`);
+  if (!cell) { popEl.style.left = '50%'; popEl.style.top = '30%'; return; }
+  const r = cell.getBoundingClientRect();
+  const pw = 250, ph = popEl.offsetHeight || 220;
+  let left = r.left + r.width / 2 - pw / 2; left = Math.max(8, Math.min(window.innerWidth - pw - 8, left));
+  let top = r.bottom + 6; if (top + ph > window.innerHeight - 8) top = Math.max(8, r.top - ph - 6);
+  popEl.style.left = left + 'px'; popEl.style.top = top + 'px';
+}
+function closePop() { if (popEl) { popEl.remove(); popEl = null; } }
+document.addEventListener('click', e => {
+  if (!popEl) return;
+  const b = e.target.closest('[data-code],[data-close],[data-calloff]');
+  if (b && popEl.contains(b)) {
+    if (b.hasAttribute('data-close')) { closePop(); return; }
+    const { staffId, date } = state.sel;
+    if (b.dataset.calloff) { markCalloff(staffId, date, b.dataset.calloff); closePop(); focusSel(); return; }
+    if (!state.canManage && !selfSchedFor(staffId, date)) { toast('Only managers can change the schedule.'); closePop(); return; }
+    setCell(staffId, date, b.dataset.code); closePop(); focusSel(); return;
+  }
+  if (!popEl.contains(e.target) && !e.target.closest('.cell')) closePop();
+});
+window.addEventListener('resize', () => popEl && renderPop());
+main.addEventListener('scroll', () => popEl && renderPop(), true);
+
+function focusSel() {
+  if (!state.sel) return;
+  const el = main.querySelector(`.cell[data-s="${CSS.escape(state.sel.staffId)}"][data-d="${state.sel.date}"]`);
+  main.querySelectorAll('.cell.sel').forEach(c => c.classList.remove('sel'));
+  if (el) { el.classList.add('sel'); el.focus({ preventScroll: false }); }
+}
+
+// ---------- Events ----------
+main.addEventListener('click', e => {
+  const cell = e.target.closest('.cell');
+  if (cell) { openPop(cell.dataset.s, cell.dataset.d); focusSel(); return; }
+  const a = e.target.closest('[data-act]'); if (!a) return;
+  const act = a.dataset.act;
+  if (act === 'schedMode') { state.schedMode = a.dataset.mode; ls.set('schedMode', state.schedMode); closePop(); render(); }
+  if (act === 'addStaff') openStaffModal(null);
+  if (act === 'pickSample') { state.staff.filter(s => s.sample).forEach(s => state.staffSel.add(s.id)); state.bulkArm = false; render(); }
+  if (act === 'pickClear') { state.staffSel.clear(); state.bulkArm = false; render(); }
+  if (act === 'bulkRemove' && !state.bulkBusy) { if (!state.bulkArm) { state.bulkArm = true; render(); } else bulkRemove(); }
+  if (act === 'importStaff') openImportModal();
+  if (act === 'managers') openManagersModal();
+  if (act === 'editStaff') openStaffModal(staffById(a.dataset.id));
+  if (act === 'covPrev' || act === 'covNext') { const days = visDays(); const i = days.indexOf(state.covDate) + (act === 'covNext' ? 1 : -1); if (i >= 0 && i < days.length) { state.covDate = days[i]; render(); } }
+  if (act === 'pickup') submitRequest({ type: 'pickup', date: a.dataset.d, code: a.dataset.c });
+  if (act === 'approve') decide(a.dataset.id, 'approved');
+  if (act === 'deny') decide(a.dataset.id, 'denied');
+  if (act === 'withdraw') { const r = state.requests.find(x => x.id === a.dataset.id); if (r) { state.requests = state.requests.filter(x => x !== r); render(); removeDoc('requests/' + r.id); } }
+  if (act === 'peerAccept') peerAnswer(a.dataset.id, true);
+  if (act === 'peerDecline') peerAnswer(a.dataset.id, false);
+  if (act === 'claim') claimShift(a.dataset.id);
+  if (act === 'pattern') openPatternModal();
+  if (act === 'announce') openAnnounceModal();
+  if (act === 'delNote') { state.notes = state.notes.filter(n => n.id !== a.dataset.id); render(); removeDoc('notes/' + a.dataset.id); }
+  if (act === 'hideNote') { ls.set('hiddenNotes', [...ls.get('hiddenNotes', []), a.dataset.id]); render(); }
+  if (act === 'exportSched') exportSchedule();
+  if (act === 'exportHours') exportHours();
+  if (act === 'print') { try { window.print(); } catch { toast('Printing is not available here. Use Export CSV instead.'); } }
+  if (act === 'rptTab') { state.rptTab = a.dataset.tab; ls.set('rptTab', state.rptTab); render(); }
+  if (act === 'goto') { if (!visDays().includes(a.dataset.d)) { state.cursor = a.dataset.d; subscribeSchedule(); } state.view = 'schedule'; state.schedMode = 'unit'; state.roleFilter = 'all'; state.sel = { staffId: a.dataset.s, date: a.dataset.d }; render.scrolled = true; render(); focusSel(); }
+});
+main.addEventListener('change', e => {
+  if (e.target.id === 'mySel') { state.me = e.target.value; ls.set('me', state.me); registerMe(); render(); }
+  if (e.target.id === 'staffSort') { state.staffSort = e.target.value; ls.set('staffSort', state.staffSort); render(); }
+  if (e.target.id === 'roleFilter') { state.roleFilter = e.target.value; ls.set('roleFilter', state.roleFilter); render(); }
+  if (e.target.id === 'covDate') { state.covDate = e.target.value; render(); }
+  if (e.target.dataset.period) setPeriodState(e.target.dataset.period, e.target.value);
+  if (e.target.dataset.periodUntil) setPeriodUntil(e.target.dataset.periodUntil, e.target.value);
+  if (e.target.id === 'rptPP') { state.rptPP = e.target.value; render(); }
+  if (e.target.id === 'rptMonths') { state.rptMonths = +e.target.value; ls.set('rptMonths', state.rptMonths); render(); }
+  if (e.target.id === 'histWho') { state.histWho = e.target.value; render(); }
+  if (e.target.dataset.pick) {
+    const id = e.target.dataset.pick;
+    if (id === 'all') { if (e.target.checked) state.staff.forEach(s => state.staffSel.add(s.id)); else state.staffSel.clear(); }
+    else if (e.target.checked) state.staffSel.add(id); else state.staffSel.delete(id);
+    state.bulkArm = false; render();
+  }
+  if (e.target.id === 'pickRole' && e.target.value) { state.staff.filter(s => s.role === e.target.value).forEach(s => state.staffSel.add(s.id)); state.bulkArm = false; render(); }
+  if (e.target.dataset.band) {
+    if (!state.canManage) { toast('Only managers can change staffing targets.'); render(); return; }
+    const v = Math.max(0, Math.min(40, parseInt(e.target.value, 10) || 0));
+    const targets = JSON.parse(JSON.stringify(cfg().targets || {}));
+    targets[e.target.dataset.role] = { ...(targets[e.target.dataset.role] || {}), [e.target.dataset.band]: v };
+    state.config = { ...cfg(), targets }; render();
+    saveDoc('config/unit', { ...state.config }, false);
+  }
+});
+main.addEventListener('submit', e => {
+  if (e.target.id !== 'reqForm') return;
+  e.preventDefault();
+  const type = document.getElementById('rqType').value;
+  const date = document.getElementById('rqDate').value;
+  if (!date) return toast('Pick a date for the request.');
+  const note = document.getElementById('rqNote').value.trim();
+  if (type === 'swap') {
+    const withId = document.getElementById('rqWith').value;
+    if (!withId) return toast('Choose who you want to swap with.');
+    if (codeAt(state.me, date) === codeAt(withId, date)) return toast('You and that teammate have the same assignment that day, so there is nothing to swap.');
+    submitRequest({ type, date, withId, note, status: 'offered' });
+  } else if (type === 'giveaway') {
+    const code = codeAt(state.me, date);
+    if (!SHIFTS[code]?.duty) return toast('You have no shift to give away on that day.');
+    submitRequest({ type, date, code, note, status: 'offered' });
+  } else {
+    const until = document.getElementById('rqUntil').value;
+    if (until && until < date) return toast('The end date is before the start date.');
+    submitRequest({ type, date, until: until || date, code: document.getElementById('rqCode').value, note: document.getElementById('rqNote').value.trim() });
+  }
+});
+main.addEventListener('keydown', e => {
+  const cell = e.target.closest && e.target.closest('.cell'); if (!cell) return;
+  const sId = cell.dataset.s, d = cell.dataset.d;
+  const rowIds = [...new Set([...main.querySelectorAll('.cell')].map(c => c.dataset.s))];
+  const days = [...new Set([...main.querySelectorAll('.cell')].map(c => c.dataset.d))].sort();
+  let ns = sId, nd = d;
+  if (e.key === 'ArrowRight') nd = days[Math.min(days.length - 1, days.indexOf(d) + 1)];
+  else if (e.key === 'ArrowLeft') nd = days[Math.max(0, days.indexOf(d) - 1)];
+  else if (e.key === 'ArrowDown') ns = rowIds[Math.min(rowIds.length - 1, rowIds.indexOf(sId) + 1)];
+  else if (e.key === 'ArrowUp') ns = rowIds[Math.max(0, rowIds.indexOf(sId) - 1)];
+  else if (e.key === 'Escape') { closePop(); return; }
+  else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPop(sId, d); return; }
+  else {
+    const k = e.key.toLowerCase();
+    const role = staffById(sId)?.role;
+    const code = (e.key === 'Delete' || e.key === 'Backspace') ? '' : (CODES.find(c => SHIFTS[c].key === k && shiftOk(c, role)) ?? CODES.find(c => SHIFTS[c].key === k));
+    if (code === undefined || e.metaKey || e.ctrlKey || e.altKey) return;
+    e.preventDefault();
+    if (!state.canManage) { toast('Only managers can change the schedule.'); return; }
+    const who = staffById(sId);
+    if (code && who && !shiftOk(code, who.role)) { toast(`${SHIFTS[code].label} is only for ${SHIFTS[code].roles.join(' and ')}.`); return; }
+    state.sel = { staffId: sId, date: d };
+    closePop();
+    setCell(sId, d, code);
+    nd = days[Math.min(days.length - 1, days.indexOf(d) + 1)];
+  }
+  e.preventDefault();
+  state.sel = { staffId: ns, date: nd };
+  if (popEl) closePop();
+  focusSel();
+});
+
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => { if (!state.canManage && t.dataset.view !== 'schedule') return; state.view = t.dataset.view; ls.set('view', state.view); closePop(); render(); }));
+document.getElementById('prevPeriod').addEventListener('click', () => { stepRange(-1); render.scrolled = false; closePop(); subscribeSchedule(); render(); });
+document.getElementById('nextPeriod').addEventListener('click', () => { stepRange(1); render.scrolled = false; closePop(); subscribeSchedule(); render(); });
+document.getElementById('rangeSeg').addEventListener('click', e => {
+  const b = e.target.closest('[data-range]'); if (!b || b.dataset.range === state.range) return;
+  // Keep today in view when it is showing; otherwise keep the first visible day.
+  const days = visDays();
+  state.cursor = days.includes(todayStr) ? todayStr : days[0];
+  state.range = b.dataset.range; ls.set('range', state.range);
+  render.scrolled = false; closePop(); subscribeSchedule(); render();
+});
+document.getElementById('bellBtn').addEventListener('click', e => { e.stopPropagation(); toggleNotif(); });
+document.addEventListener('click', e => {
+  if (!notifEl || e.target.closest('#bellBtn')) return;
+  const li = e.target.closest('[data-go]');
+  if (li && notifEl.contains(li)) goTo(li.dataset.go);
+  if (!notifEl.contains(e.target) || li) { notifEl.remove(); notifEl = null; }
+});
+document.getElementById('meSel').addEventListener('change', e => { state.me = e.target.value; ls.set('me', state.me); registerMe(); render(); });
+window.addEventListener('hashchange', () => { const v = location.hash.slice(1); if (VIEWS.includes(v)) { if (state.canManage) state.view = v; else state.lockedView = v; render(); } });
+
+// ---------- Requests ----------
+function submitRequest(r) {
+  if (!state.me) return toast('Choose your name under Acting as first.');
+  const id = 'r' + Date.now().toString(36) + uid().slice(0, 4);
+  const doc = { type: r.type, staffId: state.me, date: r.date, status: r.status || 'pending', createdAt: new Date().toISOString() };
+  if (r.code) doc.code = r.code;
+  if (r.until) doc.until = r.until;
+  if (r.withId) doc.withId = r.withId;
+  if (r.note) doc.note = r.note;
+  state.requests = [...state.requests, { id, ...doc }];
+  render(); toast(r.type === 'swap' ? `Swap sent to ${staffById(r.withId)?.name || 'your teammate'}. Once they accept, it goes to a manager.`
+    : r.type === 'giveaway' ? 'Shift offered to your teammates. Once someone claims it, it goes to a manager.' : 'Request sent to the charge nurse and manager.');
+  saveDoc('requests/' + id, doc, false);
+}
+async function decide(id, status) {
+  const r = state.requests.find(x => x.id === id); if (!r) return;
+  if (status === 'approved' && r.type === 'giveaway' && (!r.claimedBy || codeAt(r.claimedBy, r.date)))
+    return toast(r.claimedBy ? `${staffById(r.claimedBy)?.name || 'The teammate'} already has a shift that day.` : 'Nobody has claimed this shift yet.');
+  r.status = status; render();
+  saveDoc('requests/' + id, { status, decidedAt: new Date().toISOString() }, true);
+  if (status !== 'approved') { toast('Request denied.'); return; }
+  if (r.type === 'pickup') await setCell(r.staffId, r.date, r.code || 'D');
+  if (r.type === 'timeoff') {
+    const n = Math.min(30, diffDays(r.date, r.until || r.date));
+    for (let i = 0; i <= n; i++) await setCell(r.staffId, addDays(r.date, i), r.code || 'PTO');
+  }
+  if (r.type === 'giveaway') {
+    const code = codeAt(r.staffId, r.date) || r.code;
+    await setCell(r.staffId, r.date, ''); await setCell(r.claimedBy, r.date, code);
+  }
+  if (r.type === 'swap') {
+    const a = codeAt(r.staffId, r.date), b = codeAt(r.withId, r.date);
+    await setCell(r.staffId, r.date, b); await setCell(r.withId, r.date, a);
+  }
+  toast('Approved and added to the schedule.');
+}
+
+// ---------- Managers modal ----------
+let mgrModal = null;
+function openManagersModal() {
+  const user = state.user, canChange = state.isEditor && !!state.db;
+  const scrim = document.createElement('div'); scrim.className = 'scrim';
+  scrim.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="mgTitle"><h2 id="mgTitle">Managers</h2>
+    <div class="body">
+      <p class="note">Managers edit the schedule, approve requests, change targets and manage the roster. Anyone who can edit this board is always a manager.</p>
+      <ul class="mgrs" id="mgList"></ul>
+      ${canChange ? `<label for="mgSearch" style="display:grid;gap:4px;font-size:12px;color:var(--muted)">Add a manager<input type="search" id="mgSearch" placeholder="Filter by name" autocomplete="off"></label>
+      <ul class="mgrs" id="mgHits" hidden></ul>
+      <p class="note">Listed here: everyone who has opened this board. Not listed? Have them open it and pick their own name under Acting as.</p>
+      <p class="note">A new manager also needs at least Contributor access to this board, given from its Share menu, so their changes can be saved.</p>`
+      : `<p class="note">Only the board's owner or editors can add or remove managers.</p>`}
+    </div>
+    <div class="foot"><button type="button" class="btn primary" data-m="close">Done</button></div></div>`;
+  document.body.appendChild(scrim);
+  const list = scrim.querySelector('#mgList'), hits = scrim.querySelector('#mgHits'), input = scrim.querySelector('#mgSearch');
+  const row = (x, btn) => {
+    const { name, det } = accountLabel(x);
+    const li = document.createElement('li');
+    const img = document.createElement('img'); img.src = x.p.avatarUrl || ''; img.alt = '';
+    const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = name;
+    const d = document.createElement('small'); d.style.cssText = 'display:block;color:var(--muted);font-size:11px'; d.textContent = det; nm.append(d);
+    li.append(img, nm); if (btn) li.append(btn); return li;
+  };
+  const staffOf = id => state.people.find(x => x.id === id)?.staffId || '';
+  const button = (label, cls, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn small' + (cls ? ' ' + cls : ''); b.textContent = label; b.onclick = fn; return b; };
+  const setIds = ids => {
+    state.managers = ids; render(); refresh();
+    saveDoc('access/managers', { ids }, false);
+  };
+  async function refresh() {
+    const ids = state.managers.slice();
+    const ps = user && ids.length ? await user.profiles(ids) : {};
+    list.replaceChildren();
+    if (!ids.length) { const li = document.createElement('li'); li.className = 'none'; li.textContent = 'No one added yet.'; list.append(li); }
+    ids.forEach(id => {
+      const p = ps[id] || { id, name: '', avatarUrl: '', isMe: false };
+      list.append(row({ p, staffId: staffOf(id) }, canChange ? button('Remove', 'danger', () => setIds(state.managers.filter(x => x !== id))) : null));
+    });
+    if (input) showHits(lastHits);
+  }
+  let lastHits = [];
+  function showHits(found) {
+    lastHits = found;
+    hits.replaceChildren();
+    hits.hidden = false;
+    if (!found.length) { const li = document.createElement('li'); li.className = 'none'; li.textContent = input.value.trim() ? 'No one matches that.' : 'No one has opened the board yet.'; hits.append(li); }
+    found.forEach(x => {
+      const p = x.p, already = state.managers.includes(p.id);
+      hits.append(row(x, already ? (() => { const s = document.createElement('span'); s.className = 'det'; s.style.color = 'var(--muted)'; s.style.fontSize = '12px'; s.textContent = 'Manager'; return s; })()
+        : button('Make manager', 'primary', () => { setIds([...state.managers, p.id]); toast(`${accountLabel(x).name} can now manage the board.`); })));
+    });
+  }
+  if (input) {
+    const run = async () => showHits(user ? await accountCandidates(input.value.trim()) : []);
+    input.addEventListener('input', run);
+    run();
+  }
+  const close = () => { scrim.remove(); mgrModal = null; };
+  mgrModal = { refresh };
+  scrim.addEventListener('click', e => { if (e.target === scrim || e.target.dataset.m === 'close') close(); });
+  scrim.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+  refresh();
+}
+
+// ---------- Staff modal ----------
+function openStaffModal(s) {
+  const isNew = !s;
+  s = s || { name: '', role: 'RN', fte: 1, creds: {}, pref: '' };
+  const scrim = document.createElement('div'); scrim.className = 'scrim';
+  scrim.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle"><h2 id="mTitle">${isNew ? 'Add staff member' : 'Edit ' + esc(s.name)}</h2>
+    <form id="staffForm"><div class="body">
+      <div class="fields">
+        <label for="fName">Name<input type="text" id="fName" required maxlength="60" value="${esc(s.name)}"></label>
+        <label for="fRole">Role<select id="fRole">${ROLES.map(r => `<option ${r === s.role ? 'selected' : ''}>${r}</option>`).join('')}</select></label>
+        <label for="fFte">FTE<input type="number" id="fFte" min="0.1" max="1" step="0.1" value="${s.fte}"></label>
+        <label for="fPref">Shift preference<select id="fPref">${['', 'Days', 'Nights', 'Mids', 'Rotating'].map(p => `<option value="${p}" ${p === (s.pref || '') ? 'selected' : ''}>${p || 'No preference'}</option>`).join('')}</select></label>
+      </div>
+      ${state.isEditor && state.user ? `<label class="chk" for="fMgr"><input type="checkbox" id="fMgr" ${s.userId && state.managers.includes(s.userId) ? 'checked' : ''}> Manager</label>
+      <div class="acct" id="fAcct" hidden></div>` : ''}
+      <div class="eyebrow">Certification expiry dates</div>
+      <div class="fields">${ALL_CREDS.map(c => `<label for="fc-${c}">${c}<input type="date" id="fc-${c}" data-cred="${c}" value="${esc((s.creds || {})[c] || '')}"></label>`).join('')}</div>
+    </div>
+    <div class="foot">${isNew ? '' : '<button type="button" class="btn danger left" data-m="del">Remove from roster</button>'}<button type="button" class="btn" data-m="cancel">Cancel</button><button type="submit" class="btn primary">${isNew ? 'Add to roster' : 'Save changes'}</button></div></form></div>`;
+  document.body.appendChild(scrim);
+  scrim.querySelector('#fName').focus();
+  let confirmDel = false;
+  const close = () => scrim.remove();
+  // Managers are tracked by sign-in account, so ticking Manager asks which account is this person's.
+  const mgrBox = scrim.querySelector('#fMgr');
+  let acct = s.userId || null;
+  if (mgrBox) {
+    const box = scrim.querySelector('#fAcct');
+    const personRow = (x, label, fn) => {
+      const { name, det } = accountLabel(x);
+      const li = document.createElement('li');
+      const img = document.createElement('img'); img.src = x.p.avatarUrl || ''; img.alt = '';
+      const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = name;
+      const d = document.createElement('small'); d.style.cssText = 'display:block;color:var(--muted);font-size:11px'; d.textContent = det; nm.append(d);
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'btn small' + (label === 'Choose' ? ' primary' : ''); b.textContent = label; b.onclick = fn;
+      li.append(img, nm, b); return li;
+    };
+    const drawAcct = async () => {
+      box.hidden = !mgrBox.checked;
+      if (box.hidden) return;
+      box.replaceChildren();
+      const ul = document.createElement('ul'); ul.className = 'mgrs';
+      if (acct) {
+        const p = (await state.user.profiles([acct]))[acct];
+        ul.append(personRow({ p, staffId: state.people.find(x => x.id === acct)?.staffId || '' }, 'Change', () => { acct = null; drawAcct(); }));
+        const note = document.createElement('p'); note.className = 'note'; note.textContent = 'Managers edit the schedule, approve requests and manage staff.';
+        box.append(ul, note); return;
+      }
+      const note = document.createElement('p'); note.className = 'note'; note.textContent = 'Which sign-in account is theirs? Click Choose, then save.';
+      const input = document.createElement('input'); input.type = 'search'; input.placeholder = 'Filter by name'; input.autocomplete = 'off';
+      const help = document.createElement('p'); help.className = 'note';
+      help.textContent = 'Not listed? Have them open this board and pick their own name under Acting as. They will show up here.';
+      const run = async () => {
+        const q = input.value.trim();
+        const list = (await accountCandidates(q)).sort((x, y) => (y.staffId === s.id) - (x.staffId === s.id));
+        ul.replaceChildren();
+        if (!list.length) { const li = document.createElement('li'); li.className = 'none'; li.textContent = q ? 'No one matches that.' : 'No one has opened the board yet.'; ul.append(li); }
+        list.forEach(x => ul.append(personRow(x, 'Choose', () => { acct = x.p.id; drawAcct(); })));
+      };
+      input.addEventListener('input', run);
+      box.append(note, input, ul, help); run();
+    };
+    mgrBox.addEventListener('change', drawAcct);
+    drawAcct();
+  }
+  scrim.addEventListener('click', e => {
+    if (e.target === scrim || e.target.dataset.m === 'cancel') close();
+    if (e.target.dataset.m === 'del') {
+      if (!confirmDel) { confirmDel = true; e.target.textContent = 'Click again to remove'; return; }
+      state.staff = state.staff.filter(x => x.id !== s.id); render(); close();
+      removeDoc('staff/' + s.id); toast(`${s.name} removed. Their past shifts stay in the schedule history.`);
+      if (state.isEditor && s.userId && state.managers.includes(s.userId)) { state.managers = state.managers.filter(x => x !== s.userId); saveDoc('access/managers', { ids: state.managers }, false); }
+    }
+  });
+  scrim.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+  scrim.querySelector('#staffForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const creds = {};
+    scrim.querySelectorAll('[data-cred]').forEach(i => { if (i.value) creds[i.dataset.cred] = i.value; });
+    const data = { name: scrim.querySelector('#fName').value.trim(), role: scrim.querySelector('#fRole').value, fte: Math.max(0.1, Math.min(1, parseFloat(scrim.querySelector('#fFte').value) || 1)), pref: scrim.querySelector('#fPref').value, creds };
+    if (!data.name) return;
+    if (s.sample) data.sample = true;
+    if (s.userId) data.userId = s.userId;
+    let ids = null;
+    if (mgrBox && mgrBox.checked) {
+      if (!acct) return toast('Click Choose next to their account under Manager, then save.');
+      data.userId = acct;
+      ids = [...state.managers.filter(x => x !== s.userId), acct];
+    } else if (mgrBox && s.userId && state.managers.includes(s.userId)) ids = state.managers.filter(x => x !== s.userId);
+    const id = isNew ? 'st_' + uid() : s.id;
+    const i = state.staff.findIndex(x => x.id === id);
+    if (i >= 0) state.staff[i] = { id, ...data }; else state.staff.push({ id, ...data });
+    render(); close(); toast(isNew ? `${data.name} added to the roster.` : 'Changes saved.');
+    saveDoc('staff/' + id, data, false);
+    if (ids && ids.join() !== state.managers.join()) { state.managers = ids; render(); saveDoc('access/managers', { ids }, false); }
+  });
+}
+
+// ---------- Bulk import ----------
+const normKey = s => String(s || '').trim().toLowerCase().replace(/[_\-.]+/g, ' ').replace(/\s+/g, ' ');
+const IMPORT_HEADERS = {
+  name: ['name', 'full name', 'staff', 'staff name', 'employee', 'employee name'],
+  first: ['first', 'first name', 'given name'],
+  last: ['last', 'last name', 'surname', 'family name'],
+  role: ['role', 'position', 'job', 'title', 'job title'],
+  fte: ['fte'],
+  pref: ['pref', 'preference', 'shift', 'shift preference', 'preferred shift']
+};
+ALL_CREDS.forEach(c => { const k = c.toLowerCase(); IMPORT_HEADERS[c] = [k, k + ' exp', k + ' expiry', k + ' expires', k + ' expiration']; });
+const DEFAULT_ORDER = ['name', 'role', 'fte', 'pref', ...ALL_CREDS];
+const ROLE_ALIASES = {
+  'charge': 'RN', 'charge nurse': 'RN', 'charge rn': 'RN', 'rn': 'RN', 'nurse': 'RN', 'registered nurse': 'RN',
+  'medic': 'Medic', 'paramedic': 'Medic', 'emt': 'Medic', 'ed tech': 'Medic', 'msa': 'MSA', 'unit secretary': 'MSA',
+  'admin': 'Admin', 'administrative': 'Admin', 'supply': 'Supply', 'dispatcher': 'Dispatcher', 'dispatch': 'Dispatcher',
+  'lpn': 'LPN', 'lvn': 'LPN', 'licensed practical nurse': 'LPN', 'pa': 'PA', 'pa c': 'PA', 'physician assistant': 'PA', 'physician associate': 'PA',
+  'doctor': 'Doctor', 'physician': 'Doctor', 'md': 'Doctor', 'm d': 'Doctor', 'do': 'Doctor', 'd o': 'Doctor', 'attending': 'Doctor', 'ed physician': 'Doctor'
+};
+const PREFS = { '': '', 'day': 'Days', 'days': 'Days', 'night': 'Nights', 'nights': 'Nights', 'mid': 'Mids', 'mids': 'Mids', 'swing': 'Mids', 'swings': 'Mids', 'rotating': 'Rotating', 'rotate': 'Rotating', 'any': '', 'none': '', 'no preference': '' };
+
+// Handles spreadsheet pastes (tabs) and CSV files (commas or semicolons, quoted cells).
+function parseDelimited(text) {
+  text = text.replace(/^﻿/, '');
+  const first = text.split(/\r?\n/, 1)[0] || '';
+  const delim = first.includes('\t') ? '\t' : first.split(';').length > first.split(',').length ? ';' : ',';
+  const rows = []; let row = [], cell = '', quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (quoted) {
+      if (ch === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else quoted = false; }
+      else cell += ch;
+    } else if (ch === '"' && cell === '') quoted = true;
+    else if (ch === delim) { row.push(cell); cell = ''; }
+    else if (ch === '\n' || ch === '\r') { if (ch === '\r' && text[i + 1] === '\n') i++; row.push(cell); rows.push(row); row = []; cell = ''; }
+    else cell += ch;
+  }
+  if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+  return rows.map(r => r.map(c => c.trim())).filter(r => r.some(Boolean));
+}
+function parseDate(s) {
+  let m, y, mo, d;
+  if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))) [, y, mo, d] = m.map(Number);
+  else if ((m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2}|\d{4})$/))) { [, mo, d, y] = m.map(Number); if (y < 100) y += 2000; }
+  else return null;
+  const dt = new Date(Date.UTC(y, mo - 1, d));
+  return dt.getUTCMonth() === mo - 1 && dt.getUTCDate() === d ? fmt(dt) : null;
+}
+function analyzeImport(text) {
+  const rows = parseDelimited(text);
+  if (!rows.length) return { rows: [], header: false };
+  let map = {};
+  rows[0].forEach((c, i) => { const k = normKey(c); for (const [f, al] of Object.entries(IMPORT_HEADERS)) if (al.includes(k) && map[f] == null) map[f] = i; });
+  const header = map.name != null || map.first != null;
+  if (!header) { map = {}; DEFAULT_ORDER.forEach((f, i) => map[f] = i); }
+  const byName = new Map(state.staff.map(s => [String(s.name).trim().toLowerCase(), s]));
+  const seen = new Set();
+  return { header, rows: (header ? rows.slice(1) : rows).map((r, idx) => {
+    const get = f => map[f] != null ? (r[map[f]] || '').trim() : '';
+    const errors = [];
+    const name = (get('name') || [get('first'), get('last')].filter(Boolean).join(' ')).replace(/\s+/g, ' ');
+    if (!name) errors.push('Name is missing.');
+    const rawRole = get('role');
+    const role = ROLE_ALIASES[normKey(rawRole)] || ROLES.find(x => x.toLowerCase() === normKey(rawRole));
+    if (!rawRole) errors.push('Role is missing.');
+    else if (!role) errors.push(`“${rawRole}” is not a role. Use ${ROLES.join(', ')}.`);
+    let fte = null;
+    const rawFte = get('fte').replace('%', '');
+    if (rawFte) {
+      let v = parseFloat(rawFte); if (v > 1 && v <= 100) v /= 100;
+      if (v >= 0.1 && v <= 1) fte = Math.round(v * 100) / 100; else errors.push(`FTE “${get('fte')}” must be between 0.1 and 1.0.`);
+    }
+    const pref = PREFS[normKey(get('pref'))];
+    if (pref === undefined) errors.push(`Preference “${get('pref')}” should be Days, Nights, Mids or Rotating.`);
+    const creds = {};
+    ALL_CREDS.forEach(c => {
+      const v = get(c); if (!v) return;
+      const d = parseDate(v);
+      if (d) creds[c] = d; else errors.push(`${c} date “${v}” isn't a date. Use YYYY-MM-DD or MM/DD/YYYY.`);
+    });
+    const key = name.toLowerCase();
+    if (name && seen.has(key)) errors.push('This name is listed more than once.');
+    seen.add(key);
+    return { line: idx + (header ? 2 : 1), name, role, fte, pref, creds, errors, existing: byName.get(key) };
+  }) };
+}
+
+function openImportModal() {
+  const example = ['Name,Role,FTE,Preference,BLS,ACLS,PALS,TNCC', 'Jamie Rivera,RN,0.9,Nights,2027-06-30,2027-03-31,2028-01-15,', 'Alex Morgan,Medic,1.0,Days,05/31/2027,,,', 'Sam Whitfield,Dispatcher,0.6,Rotating,,,,'].join('\n');
+  const scrim = document.createElement('div'); scrim.className = 'scrim';
+  scrim.innerHTML = `<div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="iTitle"><h2 id="iTitle">Import staff</h2>
+    <div class="body">
+      <p class="hint">Copy rows from a spreadsheet and paste them below, or choose a CSV file. Put column names in the first row. <b>Name</b> and <b>Role</b> are required; Role is one of ${ROLES.join(', ')}. FTE defaults to 1.0. Certification columns (${ALL_CREDS.join(', ')}) take expiry dates. Anyone already on the roster with the same name is updated instead of added twice.</p>
+      <details><summary>See an example</summary><pre class="tpl">${esc(example)}</pre><button type="button" class="btn small" data-i="example">Put the example in the box</button></details>
+      <div class="row-gap"><label class="btn small filebtn" for="iFile">Choose CSV file<input type="file" id="iFile" accept=".csv,.tsv,.txt,text/csv,text/plain"></label><span class="hint" id="iFileName">Excel or Google Sheets: File › Download › CSV</span></div>
+      <label for="iText">Staff rows<textarea id="iText" rows="7" spellcheck="false" placeholder="Name,Role,FTE,Preference,BLS,ACLS,PALS,TNCC"></textarea></label>
+      <div id="iPreview"></div>
+    </div>
+    <div class="foot"><span class="hint left" id="iStatus" role="status"></span><button type="button" class="btn" data-i="cancel">Cancel</button><button type="button" class="btn primary" data-i="go" disabled>Import</button></div></div>`;
+  document.body.appendChild(scrim);
+  const ta = scrim.querySelector('#iText'), prev = scrim.querySelector('#iPreview'), status = scrim.querySelector('#iStatus'), goBtn = scrim.querySelector('[data-i=go]');
+  let result = { rows: [] }, busy = false, t;
+  ta.focus();
+
+  const preview = () => {
+    result = analyzeImport(ta.value);
+    const ok = result.rows.filter(r => !r.errors.length);
+    const upd = ok.filter(r => r.existing).length, bad = result.rows.length - ok.length;
+    goBtn.disabled = !ok.length || busy;
+    goBtn.textContent = ok.length ? `Import ${ok.length} ${ok.length === 1 ? 'person' : 'people'}` : 'Import';
+    if (!result.rows.length) { prev.innerHTML = ''; status.textContent = ''; return; }
+    status.textContent = `${ok.length - upd} new · ${upd} updated · ${bad} need fixing${bad ? ' and will be skipped' : ''}`;
+    const rowsHtml = result.rows.map(r => {
+      const pill = r.errors.length ? '<span class="pill short">Fix</span>' : r.existing ? '<span class="pill pending">Update</span>' : '<span class="pill approved">New</span>';
+      const fte = r.fte != null ? r.fte.toFixed(2).replace(/0$/, '') : r.existing ? '' : '1.0';
+      const creds = Object.entries(r.creds).map(([c, d]) => `<span class="cred">${c} · ${short(d)}, ${d.slice(0, 4)}</span>`).join('');
+      return `<tr><td class="num">${r.line}</td><td>${pill}</td><td>${esc(r.name) || '—'}</td><td>${esc(r.role || '')}</td><td class="num">${fte}</td><td>${esc(r.pref || '')}</td><td>${creds}</td></tr>`
+        + (r.errors.length ? `<tr class="err"><td></td><td colspan="6">${r.errors.map(esc).join(' ')}</td></tr>` : '');
+    }).join('');
+    prev.innerHTML = (result.header ? '' : `<p class="hint warn-text" style="margin-bottom:8px">The first row has no column names, so columns are read in this order: Name, Role, FTE, Preference, ${ALL_CREDS.join(', ')}.</p>`)
+      + `<div class="tbl-wrap imp"><table class="staff"><thead><tr><th>Row</th><th>Status</th><th>Name</th><th>Role</th><th>FTE</th><th>Preference</th><th>Certifications</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
+  };
+
+  async function run() {
+    const ok = result.rows.filter(r => !r.errors.length);
+    if (!ok.length || busy) return;
+    busy = true; goBtn.disabled = true; ta.disabled = true;
+    const docs = ok.map(r => {
+      const ex = r.existing;
+      // Blank cells keep what an existing record already has.
+      const data = { name: r.name, role: r.role, fte: r.fte ?? (ex && ex.fte) ?? 1, pref: r.pref || (ex && ex.pref) || '', creds: { ...((ex && ex.creds) || {}), ...r.creds } };
+      if (ex && ex.sample) data.sample = true;
+      return { id: ex ? ex.id : 'st_' + uid(), data };
+    });
+    docs.forEach(({ id, data }) => { const i = state.staff.findIndex(x => x.id === id); if (i >= 0) state.staff[i] = { id, ...data }; else state.staff.push({ id, ...data }); });
+    render();
+    let done = 0, failed = 0;
+    if (state.db) {
+      const work = docs.slice();
+      const worker = async () => {
+        while (work.length) {
+          const { id, data } = work.shift();
+          try { await queued('staff/' + id, () => state.db.doc('staff/' + id).set(data)); } catch { failed++; }
+          status.textContent = `Saving ${++done} of ${docs.length}…`;
+        }
+      };
+      await Promise.all(Array.from({ length: 4 }, worker));
+    }
+    scrim.remove();
+    toast(failed ? `Imported ${docs.length - failed} of ${docs.length}. ${failed} could not be saved; import those rows again.` : `Imported ${docs.length} ${docs.length === 1 ? 'person' : 'people'}.`);
+  }
+
+  ta.addEventListener('input', () => { clearTimeout(t); t = setTimeout(preview, 200); });
+  scrim.querySelector('#iFile').addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => { ta.value = String(reader.result || ''); scrim.querySelector('#iFileName').textContent = f.name; preview(); };
+    reader.onerror = () => toast('That file could not be read. Save it as CSV and try again.');
+    reader.readAsText(f);
+  });
+  scrim.addEventListener('click', e => {
+    const i = e.target.dataset.i;
+    if (i === 'cancel' && !busy) scrim.remove();
+    if (i === 'example') { ta.value = example; preview(); }
+    if (i === 'go') run();
+  });
+  scrim.addEventListener('keydown', e => { if (e.key === 'Escape' && !busy) scrim.remove(); });
+}
+
+// ---------- Swaps and giveaways ----------
+function peerAnswer(id, yes) {
+  const r = state.requests.find(x => x.id === id); if (!r || r.withId !== state.me || r.status !== 'offered') return;
+  const at = new Date().toISOString();
+  const patch = yes ? { status: 'pending', peerAt: at } : { status: 'declined', decidedAt: at };
+  Object.assign(r, patch); render();
+  saveDoc('requests/' + id, patch, true);
+  toast(yes ? 'Swap accepted. It now goes to a manager for approval.' : 'Swap declined.');
+}
+function claimShift(id) {
+  const r = state.requests.find(x => x.id === id), me = staffById(state.me);
+  if (!r || !me || r.status !== 'offered') return;
+  if (codeAt(me.id, r.date)) return toast('You already have a shift that day.');
+  const patch = { status: 'pending', claimedBy: me.id, claimedAt: new Date().toISOString() };
+  Object.assign(r, patch); render();
+  saveDoc('requests/' + id, patch, true);
+  toast('Shift claimed. A manager will approve the change.');
+}
+
+// ---------- Notifications ----------
+// Built from shared data for whoever is Acting as; "new" means newer than when this viewer last opened the list.
+const seenKey = () => 'seen:' + (state.me || 'manager');
+function notifications() {
+  const seen = ls.get(seenKey(), '');
+  const me = staffById(state.me);
+  const out = [];
+  const add = (at, ttl, det, go) => out.push({ at: at || '', isNew: !!at && at > seen, ttl, det: det || '', go: go || '' });
+  const nm = id => staffById(id)?.name || 'A teammate';
+  if (state.canManage) {
+    const pend = state.requests.filter(r => r.status === 'pending');
+    if (pend.length) add(pend.map(r => r.peerAt || r.claimedAt || r.createdAt || '').sort().at(-1), `${pend.length} ${pend.length === 1 ? 'request is' : 'requests are'} waiting for approval`, 'Open shifts & requests', 'requests');
+  }
+  state.notes.filter(n => !n.until || n.until >= todayStr).forEach(n => add(n.at, 'Announcement', n.text));
+  Object.entries(state.periods).forEach(([p, v]) => {
+    const end = addDays(p, PERIOD_DAYS - 1); if (end < todayStr) return;
+    const range = `${short(p)}–${short(end)}`;
+    if (v.state === 'open' && (!v.until || v.until >= todayStr)) add(v.openedAt, `Self-scheduling is open for ${range}`, v.until ? `Pick your shifts in My schedule by ${nice(v.until)}` : 'Pick your shifts in My schedule', 'mine');
+    if (v.state === 'posted' && v.postedAt) add(v.postedAt, `The ${range} schedule is posted`, '', 'mine');
+  });
+  if (me) {
+    state.requests.forEach(r => {
+      if (r.type === 'swap' && r.withId === me.id && r.status === 'offered') add(r.createdAt, `${nm(r.staffId)} wants to swap shifts on ${nice(r.date)}`, 'Accept or decline in My schedule', 'mine');
+      if (r.staffId === me.id && r.decidedAt && r.status !== 'pending') add(r.decidedAt, `Your ${(REQ_TYPES[r.type] || 'shift').toLowerCase()} request for ${nice(r.date)} was ${r.status}`, '', 'mine');
+      if (r.staffId === me.id && r.type === 'swap' && r.peerAt) add(r.peerAt, `${nm(r.withId)} accepted your swap for ${nice(r.date)}`, 'Now waiting for a manager', 'mine');
+      if (r.staffId === me.id && r.type === 'giveaway' && r.claimedAt) add(r.claimedAt, `${nm(r.claimedBy)} claimed your ${nice(r.date)} shift`, 'Now waiting for a manager', 'mine');
+    });
+    claimable(me).forEach(r => add(r.createdAt, `${nm(r.staffId)} is giving away ${SHIFTS[r.code]?.label || 'a shift'}`, `${nice(r.date)} · claim it in My schedule`, 'mine'));
+    state.changes.filter(c => c.staffId === me.id && postedChange(c) && !(c.by && c.by === state.myId)).forEach(c => add(c.at, `Your ${nice(c.date)} schedule changed`, `${SHIFTS[c.from]?.label || 'Off'} → ${SHIFTS[c.to]?.label || 'Off'}`, 'mine'));
+    const opens = openShiftsFor(me).length;
+    if (opens) add('', `${opens} open ${me.role} ${opens === 1 ? 'shift' : 'shifts'} you could pick up`, 'In the dates on screen', 'mine');
+    (REQUIRED_CREDS[me.role] || []).forEach(cr => {
+      const st = credStatus(me, cr, todayStr); if (st === 'ok') return;
+      add('', st === 'missing' ? `No ${cr} on file` : st === 'exp' ? `Your ${cr} expired ${short(me.creds[cr])}` : `Your ${cr} expires ${short(me.creds[cr])}`, 'Give your manager the new card');
+    });
+  }
+  return out.sort((a, b) => (b.isNew - a.isNew) || b.at.localeCompare(a.at));
+}
+function updateBell() {
+  const n = notifications().filter(x => x.isNew).length;
+  const b = document.getElementById('bellCount');
+  b.hidden = !n; b.textContent = n > 9 ? '9+' : String(n);
+  document.getElementById('bellBtn').setAttribute('aria-label', n ? `Notifications, ${n} new` : 'Notifications');
+}
+let notifEl = null;
+function toggleNotif() {
+  if (notifEl) { notifEl.remove(); notifEl = null; return; }
+  const items = notifications(), who = staffById(state.me);
+  notifEl = document.createElement('div'); notifEl.className = 'notif'; notifEl.setAttribute('role', 'dialog'); notifEl.setAttribute('aria-label', 'Notifications');
+  notifEl.innerHTML = `<div class="panel-head"><h2>Notifications</h2><span class="sub">${who ? esc(who.name) : 'Manager view'}</span></div><ul class="list">${items.length ? items.map(n => `<li class="${n.isNew ? 'new' : ''}${n.go ? ' go' : ''}"${n.go ? ` data-go="${n.go}" tabindex="0"` : ''}><span class="mk" style="${n.isNew ? 'background:var(--accent)' : ''}"></span><div class="grow"><div class="ttl">${esc(n.ttl)}</div>${n.det ? `<div class="det">${esc(n.det)}</div>` : ''}</div></li>`).join('')
+    : `<li class="det">Nothing new.${who ? '' : ' Pick your name under Acting as to see your own updates.'}</li>`}</ul>`;
+  document.body.appendChild(notifEl);
+  const r = document.getElementById('bellBtn').getBoundingClientRect();
+  notifEl.style.top = (r.bottom + 8) + 'px';
+  notifEl.style.left = Math.max(12, Math.min(window.innerWidth - notifEl.offsetWidth - 12, r.right - notifEl.offsetWidth)) + 'px';
+  ls.set(seenKey(), new Date().toISOString()); updateBell();
+}
+function goTo(where) {
+  if (where === 'requests' && state.canManage) state.view = 'requests';
+  if (where === 'mine') { state.view = 'schedule'; state.schedMode = 'mine'; ls.set('schedMode', 'mine'); }
+  ls.set('view', state.view); closePop(); render();
+}
+
+// ---------- Announcements ----------
+function openAnnounceModal() {
+  const scrim = document.createElement('div'); scrim.className = 'scrim';
+  scrim.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="anTitle"><h2 id="anTitle">Post an announcement</h2>
+    <form id="anForm"><div class="body">
+      <label for="anText">Message<textarea id="anText" rows="4" maxlength="400" required placeholder="Census is high this weekend. Overtime is available on nights." style="font-family:var(--f-body);font-size:13px"></textarea></label>
+      <label for="anUntil">Show until<input type="date" id="anUntil" value="${addDays(todayStr, 7)}" min="${todayStr}"></label>
+      <p class="note">It shows at the top of everyone's board and in their notifications. Clear the date to keep it up until you delete it.</p>
+    </div><div class="foot"><button type="button" class="btn" data-m="cancel">Cancel</button><button type="submit" class="btn primary">Post</button></div></form></div>`;
+  document.body.appendChild(scrim); scrim.querySelector('#anText').focus();
+  scrim.addEventListener('click', e => { if (e.target === scrim || e.target.dataset.m === 'cancel') scrim.remove(); });
+  scrim.addEventListener('keydown', e => { if (e.key === 'Escape') scrim.remove(); });
+  scrim.querySelector('#anForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const text = scrim.querySelector('#anText').value.trim(); if (!text) return;
+    const id = 'n' + Date.now().toString(36) + uid().slice(0, 4);
+    const doc = { text, at: new Date().toISOString(), until: scrim.querySelector('#anUntil').value || '', by: state.myId || '' };
+    state.notes = [...state.notes, { id, ...doc }]; render(); scrim.remove(); toast('Announcement posted.');
+    saveDoc('notes/' + id, doc, false);
+  });
+}
+
+// ---------- Repeating patterns ----------
+// Tokens are the codes shown on the board (D, N, M, L8, EDU, LV, RDO…) or a shift's key letter; - leaves the day blank.
+function parsePattern(text, role) {
+  const bad = [];
+  const seq = String(text).trim().toUpperCase().split(/[\s,]+/).filter(Boolean).map(t => {
+    if (t === '-' || t === 'OFF') return '';
+    const c = CODES.find(c => (SHIFTS[c].show || c).toUpperCase() === t && shiftOk(c, role) && c !== 'CO')
+      || CODES.find(c => c === t && shiftOk(c, role) && c !== 'CO')
+      || CODES.find(c => SHIFTS[c].key === t.toLowerCase() && shiftOk(c, role));
+    if (!c) bad.push(t);
+    return c || '';
+  });
+  return { seq, bad };
+}
+function openPatternModal() {
+  if (!state.staff.length) return toast('Add staff first.');
+  const days = visDays();
+  const scrim = document.createElement('div'); scrim.className = 'scrim';
+  scrim.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="ptTitle"><h2 id="ptTitle">Apply a repeating pattern</h2>
+    <form id="ptForm"><div class="body">
+      <div class="fields">
+        <label for="ptWho">Staff member<select id="ptWho">${sortedStaff().map(s => `<option value="${esc(s.id)}" ${s.id === state.sel?.staffId ? 'selected' : ''}>${esc(s.name)} · ${esc(s.role)}</option>`).join('')}</select></label>
+        <label for="ptSaved">Saved patterns<select id="ptSaved"><option value="">Type your own</option>${state.patterns.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('')}</select></label>
+      </div>
+      <label for="ptSeq">Pattern<input type="text" id="ptSeq" placeholder="D D D - - - -" autocomplete="off"></label>
+      <p class="hint">Type the codes on the board, separated by spaces: D, N, M, L8, CD, EDU, ADM, LV, RDO and so on. Use <b>-</b> for a day left blank. The pattern repeats from the start date.</p>
+      <div class="fields">
+        <label for="ptFrom">Start<input type="date" id="ptFrom" value="${days[0]}"></label>
+        <label for="ptTo">Through<input type="date" id="ptTo" value="${days.at(-1)}"></label>
+      </div>
+      <label class="chk" for="ptReplace"><input type="checkbox" id="ptReplace"> Replace shifts already on the schedule</label>
+      <p class="hint" id="ptPreview" aria-live="polite"></p>
+      <div class="row-gap"><input type="text" id="ptName" placeholder="Name it to save, e.g. 3 on, 4 off" maxlength="40" style="flex:1;min-width:160px"><button type="button" class="btn small" data-m="save">Save pattern</button><button type="button" class="btn small danger" data-m="delpat" hidden>Delete saved</button></div>
+    </div><div class="foot"><button type="button" class="btn" data-m="cancel">Cancel</button><button type="submit" class="btn primary">Apply</button></div></form></div>`;
+  document.body.appendChild(scrim);
+  const $ = q => scrim.querySelector(q);
+  const plan = () => {
+    const s = staffById($('#ptWho').value), from = $('#ptFrom').value, to = $('#ptTo').value;
+    const { seq, bad } = parsePattern($('#ptSeq').value, s?.role);
+    const out = { s, edits: [], skipped: 0, err: '' };
+    if (!seq.length) return { ...out, err: 'Type a pattern, such as D D D - - - -.' };
+    if (bad.length) return { ...out, err: `${bad.join(', ')} ${bad.length === 1 ? "isn't a shift" : "aren't shifts"} for ${s.role}.` };
+    if (!from || !to || to < from) return { ...out, err: 'Check the start and through dates.' };
+    if (diffDays(from, to) > 125) return { ...out, err: 'Pick 18 weeks or less.' };
+    const dates = span(from, to);
+    if (state.db && dates.some(d => !state.rowsBy[periodOf(d)])) return { ...out, err: 'Move the board to those dates first, so their current shifts are loaded.' };
+    const replace = $('#ptReplace').checked;
+    dates.forEach((d, i) => {
+      const want = seq[i % seq.length], cur = codeAt(s.id, d);
+      if (cur === want) return;
+      if (!want) { if (replace) out.edits.push([d, '']); return; }
+      if (cur && !replace) { out.skipped++; return; }
+      out.edits.push([d, want]);
+    });
+    return out;
+  };
+  const preview = () => { const p = plan(); $('#ptPreview').textContent = p.err || `${p.edits.length} ${p.edits.length === 1 ? 'day' : 'days'} will change for ${p.s.name}${p.skipped ? `; ${p.skipped} kept because they already have a shift` : ''}.`; };
+  scrim.addEventListener('input', preview); scrim.addEventListener('change', e => {
+    if (e.target.id === 'ptSaved') { const sp = state.patterns.find(x => x.id === e.target.value); if (sp) { $('#ptSeq').value = sp.seq; $('#ptName').value = sp.name; } }
+    $('[data-m=delpat]').hidden = !$('#ptSaved').value; preview();
+  });
+  $('#ptSeq').focus(); preview();
+  const savePatterns = list => { state.patterns = list; saveDoc('config/patterns', { list }, false); };
+  scrim.addEventListener('click', e => {
+    const m = e.target.dataset.m;
+    if (e.target === scrim || m === 'cancel') scrim.remove();
+    if (m === 'save') {
+      const name = $('#ptName').value.trim(), seq = $('#ptSeq').value.trim().replace(/\s+/g, ' ');
+      if (!name || !seq) return toast('Type a pattern and a name to save it.');
+      const old = state.patterns.find(x => x.name.toLowerCase() === name.toLowerCase());
+      const item = { id: old ? old.id : 'p' + uid(), name, seq };
+      savePatterns([...state.patterns.filter(x => x.id !== item.id), item]);
+      $('#ptSaved').innerHTML = `<option value="">Type your own</option>${state.patterns.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('')}`;
+      $('#ptSaved').value = item.id; $('[data-m=delpat]').hidden = false; toast(`Saved “${name}”.`);
+    }
+    if (m === 'delpat') {
+      const id = $('#ptSaved').value; if (!id) return;
+      savePatterns(state.patterns.filter(x => x.id !== id));
+      $('#ptSaved').querySelector(`option[value="${CSS.escape(id)}"]`)?.remove(); $('#ptSaved').value = ''; e.target.hidden = true; toast('Saved pattern deleted.');
+    }
+  });
+  scrim.addEventListener('keydown', e => { if (e.key === 'Escape') scrim.remove(); });
+  $('#ptForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const p = plan();
+    if (p.err) return toast(p.err);
+    if (!p.edits.length) return toast('Nothing to change: those days already match.');
+    if (!state.canManage) return toast('Only managers can change the schedule.');
+    p.edits.forEach(([d, c]) => setCell(p.s.id, d, c));
+    scrim.remove(); toast(`Pattern applied: ${p.edits.length} ${p.edits.length === 1 ? 'day' : 'days'} changed for ${p.s.name}.`);
+  });
+}
+
+// ---------- Export ----------
+const csvCell = v => /[",\r\n]/.test(String(v)) ? '"' + String(v).replace(/"/g, '""') + '"' : String(v);
+async function saveCsv(filename, rows) {
+  const text = rows.map(r => r.map(v => csvCell(v ?? '')).join(',')).join('\r\n');
+  if (window.claude && window.claude.use) {
+    const dl = await window.claude.use('downloads');
+    if (dl) { try { await dl.save({ filename, data: text }); return; } catch (e) { if (e && e.code === 'declined') return; } }
+    try { await navigator.clipboard.writeText(text); toast('Saving files is not available here, so the CSV was copied. Paste it into a spreadsheet.'); } catch { toast('Could not save the file here.'); }
+    return;
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'text/csv' })); a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function exportSchedule() {
+  const days = visDays();
+  const people = sortedStaff().filter(s => state.roleFilter === 'all' || s.role === state.roleFilter);
+  saveCsv(`schedule-${days[0]}-to-${days.at(-1)}.csv`, [['Name', 'Role', 'FTE', ...days, 'Hours'],
+    ...people.map(s => [s.name, s.role, s.fte, ...days.map(d => { const c = codeAt(s.id, d); return c ? (SHIFTS[c]?.show || c) : ''; }), hrsText(days.reduce((t, d) => t + workedHours(codeAt(s.id, d)), 0))])]);
+}
+function exportHours() {
+  const p = rptPP();
+  saveCsv(`hours-pay-period-${p}.csv`, [['Name', 'Role', 'FTE', 'FTE target', 'Worked', 'Overtime shifts', 'Education', 'Admin', 'Scheduled', 'vs target', 'Past 80h', 'Leave', 'Call-offs'],
+    ...hoursRows(p).map(r => [r.s.name, r.s.role, r.s.fte, r.target, r.worked, r.ot, r.edu, r.adm, r.total, r.diff, r.over, r.leave, r.co])]);
+}
+
+// ---------- Toast ----------
+let toastT;
+function toast(msg) {
+  let el = document.querySelector('.toast');
+  if (!el) { el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
+  el.textContent = msg; clearTimeout(toastT); toastT = setTimeout(() => el.remove(), 3200);
+}
+
+boot();
+})();
+</script>
